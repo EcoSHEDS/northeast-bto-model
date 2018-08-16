@@ -10,3 +10,6 @@ SHEDS_BTO_DB_DBNAME=""
 
 # root directory
 SHEDS_BTO_ROOT="/path/to/models"
+
+# temp model output (derived metrics CSV file)
+SHEDS_BTO_TEMP_PATH="/path/to/derived_site_metrics.csv"

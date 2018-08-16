@@ -10,6 +10,9 @@ load_config <- function(path = "../") {
   }
 
   list(
+    version = Sys.getenv("SHEDS_BTO_VERSION"),
+    root = Sys.getenv("SHEDS_BTO_ROOT"),
+    wd = wd,
     db = list(
       dbname = Sys.getenv("SHEDS_BTO_DB_DBNAME"),
       host = Sys.getenv("SHEDS_BTO_DB_HOST"),
@@ -17,9 +20,9 @@ load_config <- function(path = "../") {
       port = Sys.getenv("SHEDS_BTO_DB_PORT"),
       user = Sys.getenv("SHEDS_BTO_DB_USER")
     ),
-    version = Sys.getenv("SHEDS_BTO_VERSION"),
-    root = Sys.getenv("SHEDS_BTO_ROOT"),
-    wd = wd
+    temp = list(
+      path = Sys.getenv("SHEDS_BTO_TEMP_PATH")
+    )
   )
 }
 
