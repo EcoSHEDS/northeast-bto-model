@@ -1,0 +1,118 @@
+--- 
+title: "SHEDS Brook Trout Occupancy Model"
+author: "[Jeff Walker](https://walkerenvres.com), [Ben Letcher](https://www.lsc.usgs.gov/?q=cafb-ben-letcher), and [Dan Hocking](https://hockinglab.weebly.com/)"
+date: "v0.9.0 (Aug 16, 2018)"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: walkerjeffd/sheds-bto-model
+description: "Documentation for the SHEDS brook trout occupancy model."
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, echo = FALSE}
+library(AUC)
+library(boot)
+library(tidyverse)
+library(gridExtra)
+source("../functions.R")
+
+config <- load_config("../../")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+
+theme_set(theme_bw())
+
+calib <- readRDS(file.path(config$wd, "model-calib.rds"))
+valid <- readRDS(file.path(config$wd, "model-valid.rds"))
+```
+
+# Introduction {#intro}
+
+The SHEDS brook trout occupancy model predicts probability of occupancy for catchments smaller than 200 km^2 in the northeastern U.S. from Maine to Virginia.
+
+The documentation is divided into the following sections:
+
+1. [Introduction] : provides an overview the model and its documentation, as well as a snapshot of the current calibration
+1. [Theory] : describes how the model works including the underlying structure and theory
+1. [Data Sources] : describes the datasets used as inputs to the model
+1. [Data Processing] : describes how input datasets are processed prior to model fitting (i.e. QAQC procedures) 
+1. [Calibration and Validation] : describes how well the model predicts occupancy based on observations that were included (calibration) and excluded (validation) from the model fitting process
+1. [Predictions] : describes how predictions are generated after the model is calibrated and describes the various summary metrics that are computed for each catchment
+
+The model will be periodically updated and re-calibrated (approximately once every 6 months) to incorporate any newly available data or updated stream temperature model results, and to make any necessary revisions to the data processing and/or model structure. With each update, a new version will be assigned to the model, and this documentation website will be updated to reflect the most recent performance of the model. A brief summary of the changes associated with each new version is provided in the [Change Log](#change-log) below.
+
+## Model Overview
+
+## Current Snapshot
+
+Table \@ref(tab:table-intro-gof) provides a snapshot of the calibration and validation performance for the current version of the model (v`r config$version`). More details about the model performance can be found in the [Calibration and Validation] section.
+
+```{r table-intro-gof}
+
+stat_labels <- c(
+  "n" = "# Catchments",
+  "sens" = "Sensitivity",
+  "spec" = "Specificity",
+  "fnr" = "False Negative Rate",
+  "fpr" = "False Positive Rate",
+  "acc" = "Accuracy",
+  "err" = "Error Rate",
+  "auc" = "AUC"
+)
+
+bind_cols(
+  data_frame(
+    dataset = c("calibration", "validation")
+  ),
+  as_data_frame(
+    bind_rows(calib$pred$stats, valid$pred$stats)
+  )
+) %>%
+  mutate_at(vars(n), scales::comma) %>% 
+  mutate_at(
+    vars(
+      sens, spec, acc, auc, err, fpr, fnr
+    ),
+    ~ sprintf("%.3f", .)
+  ) %>% 
+  gather(stat, value, -dataset) %>% 
+  spread(dataset, value) %>% 
+  mutate(
+    stat = factor(stat, ordered = TRUE, levels = names(stat_labels))
+  ) %>% 
+  arrange(stat) %>% 
+  mutate(
+    stat_label = plyr::revalue(stat, stat_labels)
+  ) %>% 
+  select(-stat) %>% 
+  select(stat_label, calibration, validation) %>% 
+  knitr::kable(
+    align = "lrr", 
+    col.names = c("", "Calibration", "Validation"),
+    caption = "Summary statistics of model calibration and validation"
+  )
+```
+
+## Model Versioning
+
+The model uses semantic versioning of the form: `vX.Y.Z`
+
+- `X` is the **major** version, which will be incremented when there is a major change to the model theory, code, or datasets.
+- `Y` is the **minor** version, which will be incremented when there is a new set of results due to changes in the model code, datasets, processing procedures, etc.
+- `Z` is the **patch** version, which will be incremented only when there is a change to the documentation or code that *does not* yield different results.
+
+## Source Code
+
+The source code for the model itself and this documentation is available in the Github repository [walkerjeffd/sheds-bto-model](https://github.com/walkerjeffd/sheds-bto-model). Each version of the model will be included under the list of  [Releases](https://github.com/walkerjeffd/sheds-bto-model/releases).
+
+## Change Log {#change-log}
+
+- **[v0.9.0 (Aug 16, 2018)](http://ecosheds.org/models/bto/v0.9.0/)**  
+Preliminary release of the new model framework and documentation.
+- **[Previous Versions](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/) (prior to 2018)**  
+Previous versions of the brook trout occupancy model can be found [here](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/). That website is now deprecated, but will remain available for future reference. Beginning with v1.0.0 of the new framework and codebase, all model changes and results will be tracked and made available.
+

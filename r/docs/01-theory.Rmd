@@ -1,0 +1,92 @@
+# Theory {#theory}
+
+The brook trout occupancy model is a nested hierarchical Bayesian model that predicts probability of occupancy based on catchment characteristics and climate conditions.
+
+Daily mean stream temperature for each catchment is assumed to be a normally distributed random variable:
+
+$$t_{h,c,y,d} \sim \mathcal{N}(\mu_{h,c,y,d},\sigma_{[t]})$$
+
+where $t_{h,c,y,d}$ is the mean stream temperature on day $d$ within year $y$ for catchment $c$, which is located within HUC8 $h$. This random variable is normally distributed with an expected mean $\mu_{h,c,y,d}$ and standard deviation $\sigma_{[t]}$.
+
+The expected mean is computed as:
+
+$$
+\mu_{h,c,y,d} = \left \{ \begin{array}{l l}
+  \omega_{h,c,y,d} + \delta_{h}(t_{h,c,y,d-1} - \omega_{h,c,y,d-1}) & \quad \text{for } t_{h,c,y,d-1} \text{ is real} \\
+  \omega_{h,c,y,d} & \quad \text{for } t_{h,c,y,d-1} \text{ is not real}
+  \end{array} \right.
+$$
+
+where $\delta_h$ is an autoregressive [AR(1)] coefficient and $\omega_{h,c,y,d}$ is the expected temperature before accounting for temporal autocorrelation in the error structure.
+
+The expected temperature is computed as a linear equation with four sets of terms:
+
+$$\omega_{h,c,y,d} = X_{[0]} B_{[0]} + X_{h,c} B_{h,c} + X_{h} B_{h} + X_{y} B_{y}$$
+
+where
+
+- $B_{[0]}$ is a vector of fixed effect coefficients
+- $B_{h,c}$ is a vector of random effect coefficients for catchment $c$
+- $B_{h}$ is a vector of random effect coefficients for HUC $h$
+- $B_{y}$ is a vector of random effect coefficients for year $y$
+
+Each of these vectors is multiplied by a corresponding matrix containing the corresponding predictor values ($X$) of each catchment $c$ (located within HUC $h$) and on each day $d$ (within year $y$).
+
+## Fixed Effects
+
+The fixed effects are shared among all catchments within the model domain. They include the following terms:
+
+Variable     |Description
+:------------|:----------
+`intercept`  |Intercept
+`AreaSqKM`   |Total Drainage Area (km2)
+`impoundArea`|Impounded Drainage Area (km2)
+`agriculture`|Agricultural Land Cover (%)
+`devel_hi`   |High Development Land Cover (%)
+`forest`     |Riparian (200 ft Buffer) Forest Cover (%)
+`prcp2`      |2-day Precipitation (mm)
+`prcp30`     |30-day Precipitation (mm)
+
+The fixed effects also include the following interaction terms.
+
+Interaction Term     |Description
+:--------------------|:-----------------------------------
+`prcp2.da`           |2-day Precipitaation x Drainage Area
+`prcp30.da`          |30-day Precipitaation x Drainage Area
+`airTemp.da`         |Air Temperature x Total Drainage Area
+`airTemp.impoundArea`|Air Temperature x Impounded Drainage Area
+`airTemp.agriculture`|Air Temperature x Agricultural Land Cover
+`airTemp.forest`     |Air Temperature x Riparian (200 ft Buffer) Forest Cover
+`airTemp.devel_hi`   |Air Temperature x High Development Land Cover
+`airTemp.prcp2`      |Air Temperature x 2-day Precipitation
+`airTemp.prcp30`     |Air Temperature x 30-day Precipitation
+`airTemp.prcp2.da`   |Air Temperature x 2-day Precipitation x Drainage Area
+`airTemp.prcp30.da`  |Air Temperature x 30-day Precipitation x Drainage Area
+
+## Catchment Random Effects
+
+The random effects for each catchment ($c$) include the following variables:
+
+Variable   |Description
+:----------|:----------
+`intercept`|Intercept
+`airTemp`  |Air Temperature (degC)
+`temp7p`   |7-day Mean Air Temperature (degC)
+
+## HUC Random Effects
+
+The random effects for each HUC ($h$) include the following variables:
+
+Variable   |Description
+:----------|:----------
+`intercept`|Intercept
+`airTemp`  |Air Temperature (degC)
+`temp7p`   |7-day Mean Air Temperature (degC)
+
+## Year Random Effects
+
+The random effects for each year ($y$) include the following variables:
+
+Variable   |Description
+:----------|:----------
+`intercept`|Intercept

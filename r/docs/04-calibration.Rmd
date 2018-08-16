@@ -1,0 +1,128 @@
+# Calibration and Validation
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+library(AUC)
+library(boot)
+library(lme4)
+library(tidyverse)
+library(gridExtra)
+library(sjPlot)
+source("../functions.R")
+
+config <- load_config("../../")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+
+theme_set(theme_bw())
+
+calib <- readRDS(file.path(config$wd, "model-calib.rds"))
+glmm <- calib$model
+valid <- readRDS(file.path(config$wd, "model-valid.rds"))
+```
+
+## Parameter Estimates
+
+### Fixed Effects
+
+```{r}
+summary(glmm)$coefficients %>% 
+  as.data.frame() %>% 
+  rownames_to_column() %>% 
+  rename(Variable = rowname, `z Value` = `z value`, `p Value` = `Pr(>|z|)`) %>% 
+  knitr::kable(digits = 3)
+```
+
+```{r, fig.width=8, fig.height=5}
+plot_model(glmm, title = "Fixed Effects")
+```
+
+#### Marginal Effect Plots
+
+```{r, fig.width=10, fig.height=12, warning = FALSE}
+df <- calib$data
+vars <- c("AreaSqKM", "summer_prcp_mm", "meanJulyTemp", "forest", "allonnet", "devel_hi", "agriculture")
+
+p_eff <- lapply(vars, function (v) {
+  plot_model(glmm, type = "eff", terms = v, title = paste0("Fixed Effect: ", v), axis.lim = c(0, 1))
+})
+
+grid.arrange(grobs = p_eff, ncol = 2)
+```
+
+### Random Effects
+
+Distribution of each random effect over all HUC10's. 
+
+```{r, fig.width=10, fig.height=6}
+ranef(glmm)$huc10 %>%
+  as.data.frame() %>% 
+  rownames_to_column(var = "huc10") %>% 
+  gather(var, value, -huc10) %>% 
+  ggplot(aes(value)) +
+  geom_histogram() +
+  labs(
+    x = "Value",
+    y = "Count"
+  ) +
+  facet_wrap(~ var, scales = "free", ncol = 2)
+```
+
+
+## Goodness-of-Fit
+
+```{r}
+stat_labels <- c(
+  "n" = "# Catchments",
+  "sens" = "Sensitivity",
+  "spec" = "Specificity",
+  "fnr" = "False Negative Rate",
+  "fpr" = "False Positive Rate",
+  "acc" = "Accuracy",
+  "err" = "Error Rate",
+  "auc" = "AUC"
+)
+
+bind_cols(
+  data_frame(
+    dataset = c("calibration", "validation")
+  ),
+  as_data_frame(
+    bind_rows(calib$pred$stats, valid$pred$stats)
+  )
+) %>%
+  mutate_at(vars(n), scales::comma) %>% 
+  mutate_at(
+    vars(
+      sens, spec, acc, auc, err, fpr, fnr
+    ),
+    ~ sprintf("%.3f", .)
+  ) %>% 
+  gather(stat, value, -dataset) %>% 
+  spread(dataset, value) %>% 
+  mutate(
+    stat = factor(stat, ordered = TRUE, levels = names(stat_labels))
+  ) %>% 
+  arrange(stat) %>% 
+  mutate(
+    stat_label = plyr::revalue(stat, stat_labels)
+  ) %>% 
+  select(-stat) %>% 
+  select(stat_label, calibration, validation) %>% 
+  knitr::kable(
+    align = "lrr", 
+    col.names = c("", "Calibration", "Validation"),
+    caption = "Summary statistics of model calibration and validation"
+  )
+```
+
+
+### Calibration
+
+```{r, fig.width=10, fig.height=10}
+plot_auc(calib$pred$y_pred, calib$pred$y_obs)
+```
+
+### Validation
+
+```{r, fig.width=10, fig.height=10}
+plot_auc(valid$pred$y_pred, valid$pred$y_obs)
+```
