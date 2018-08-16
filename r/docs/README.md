@@ -22,7 +22,7 @@ The output files will be generated in the `dovs/_book` sub-directory.
 
 When a new version of the model is released, follow this checklist to update the documentation.
 
-- [ ] Update version number and date in the YAML frontmatter of index.Rmd  
+- [ ] Update version number and date in the YAML frontmatter of index.Rmd
 - [ ] Update Change Log in index.Rmd
 - [ ] Make any necessary changes to the underlying theory, processing, etc.
 - [ ] Regenerate all pages to update the tables and figures
@@ -32,9 +32,9 @@ When a new version of the model is released, follow this checklist to update the
 
 After completing an update, deploy the compiled files to ecosheds.org.
 
-- [ ] Deploy the output (`_book/`) to the web server under the new version number  
+- [ ] Deploy the output (`_book/`) to the web server under the new version number
 ```txt
-scp -r _book/* jeff@ecosheds.org:/conte/www/static/models/brook-trout-occupancy/<vX.Y.Z>/
+scp -r _book/* jeff@ecosheds.org:/conte/www/static/models/bto-model/<vX.Y.Z>/
 ```
 - [ ] Update the model homepage to list the newest version
 - [ ] Update the `/latest` redirect in the web server to point to the newest version
