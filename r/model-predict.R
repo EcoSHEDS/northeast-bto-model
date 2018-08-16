@@ -5,7 +5,7 @@
 # -> {wd}/model-predict.csv
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting model-predict:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
+cat("starting model-predict: ", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(AUC))
 suppressPackageStartupMessages(library(lme4))
@@ -123,4 +123,4 @@ df_huc %>%
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished model-predict:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished model-predict: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")

@@ -3,7 +3,7 @@
 # -> {wd}/model-calib.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting model-calib:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
+cat("starting model-calib: ", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(lme4))
 suppressPackageStartupMessages(library(AUC))
@@ -49,7 +49,7 @@ cat("done\n")
 
 cat(
   "summary stats--------------\n",
-  "  n = ", scales::comma(length(pred$y_pred)), "\n",
+  "  n = ", scales::comma(pred$n), "\n",
   "  % obs pos = ", scales::percent(mean(pred$y_obs)), "\n",
   "  % pred pos = ", scales::percent(mean(pred$y_pred)), "\n",
   "  sensitivity = ", sprintf("%.3f", pred$stats$sens), "\n",
@@ -76,5 +76,5 @@ list(
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished model-calib:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished model-calib: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
 

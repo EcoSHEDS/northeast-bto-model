@@ -41,6 +41,7 @@ model_pred <- function(m, df) {
   )
 
   pred_stats <- list(
+    n = length(y_obs),
     sens = auc(sensitivity(y_pred, as.factor(y_obs))),
     spec = auc(specificity(y_pred, as.factor(y_obs))),
     acc = auc(accuracy(y_pred, as.factor(y_obs))),
@@ -58,3 +59,96 @@ model_pred <- function(m, df) {
   )
 }
 
+plot_auc <- function(y_pred, y_obs) {
+  x_sens <- sensitivity(y_pred, as.factor(y_obs))
+  x_spec <- specificity(y_pred, as.factor(y_obs))
+  x_acc <- accuracy(y_pred, as.factor(y_obs))
+  x_roc <- roc(y_pred, as.factor(y_obs))
+
+  p_sens <- data_frame(
+    cutoff = x_sens$cutoffs,
+    value = x_sens$measure
+  ) %>%
+    ggplot(aes(cutoff, value)) +
+    geom_line() +
+    geom_label(
+      data = data_frame(auc = auc(x_sens)),
+      aes(x = 0.01, y = 0.01, label = paste0("Sensitivity = ", sprintf("%.2f", auc))),
+      hjust = 0, vjust = 0
+    ) +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    labs(
+      x = "Cutoff",
+      y = "Sensitivity",
+      title = "Sensitivity",
+      subtitle = "True Positive Rate"
+    ) +
+    theme(aspect.ratio = 1)
+
+  p_spec <- data_frame(
+    cutoff = x_spec$cutoffs,
+    value = x_spec$measure
+  ) %>%
+    ggplot(aes(cutoff, value)) +
+    geom_line() +
+    geom_label(
+      data = data_frame(auc = auc(x_spec)),
+      aes(x = 0.99, y = 0.01, label = paste0("Specificity = ", sprintf("%.2f", auc))),
+      hjust = 1, vjust = 0
+    ) +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    labs(
+      x = "Cutoff",
+      y = "Specificity",
+      title = "Specificity",
+      subtitle = "True Negative Rate"
+    ) +
+    theme(aspect.ratio = 1)
+
+  p_acc <- data_frame(
+    cutoff = x_acc$cutoffs,
+    value = x_acc$measure
+  ) %>%
+    ggplot(aes(cutoff, value)) +
+    geom_line() +
+    geom_label(
+      data = data_frame(auc = auc(x_acc)),
+      aes(x = 0.01, y = 0.01, label = paste0("Accuracy = ", sprintf("%.2f", auc))),
+      hjust = 0, vjust = 0
+    ) +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    labs(
+      x = "Cutoff",
+      y = "Accuracy",
+      title = "Accuracy",
+      subtitle = "True Positive and Negative Rate"
+    ) +
+    theme(aspect.ratio = 1)
+
+  p_roc <- data_frame(
+    fpr = x_roc$fpr,
+    tpr = x_roc$tpr
+  ) %>%
+    ggplot(aes(fpr, tpr)) +
+    geom_abline(color = "gray80") +
+    geom_line() +
+    geom_label(
+      data = data_frame(auc = auc(x_roc)),
+      aes(x = 0.99, y = 0.01, label = paste0("AUC = ", sprintf("%.2f", auc))),
+      hjust = 1, vjust = 0
+    ) +
+    scale_x_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 6), limits = c(0, 1)) +
+    labs(
+      x = "1 - Specificity",
+      y = "Sensitivity",
+      title = "ROC Curve",
+      subtitle = " "
+    ) +
+    theme(aspect.ratio = 1)
+
+  grid.arrange(p_sens, p_spec, p_acc, p_roc, ncol = 2)
+}

@@ -5,7 +5,7 @@
 # -> {wd}/model-input.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting model-input:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
+cat("starting model-input: ", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
@@ -141,5 +141,5 @@ cat("done\n")
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished model-input:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished model-input: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
 

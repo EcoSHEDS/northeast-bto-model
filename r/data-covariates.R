@@ -2,7 +2,7 @@
 # -> {wd}/data-covariates.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting data-covariates:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
+cat("starting data-covariates: ", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(RPostgreSQL))
 suppressPackageStartupMessages(library(tidyverse))
@@ -87,4 +87,4 @@ cat("done\n")
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished data-covariates:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished data-covariates: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
