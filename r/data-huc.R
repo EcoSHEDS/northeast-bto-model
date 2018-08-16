@@ -1,9 +1,8 @@
-# fetch huc dataset for obs featureids
-# <- {wd}/data-obs.rds
+# fetch huc dataset
 # -> {wd}/data-huc.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting data-huc:", as.character(start, tz = "US/Eastern"), "\n")
+cat("starting data-huc:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(RPostgreSQL))
 suppressPackageStartupMessages(library(tidyverse))
@@ -23,26 +22,12 @@ db <- src_postgres(
   password = config$db$password
 )
 
-# load obs ----------------------------------------------------------------
-
-cat("loading obs dataset...")
-df_obs <- readRDS(file.path(config$wd, "data-obs.rds"))
-featureids <- unique(df_obs$featureid) %>% sort()
-cat("done\n")
-
-cat("# featureids with obs data: ", scales::comma(length(featureids)), "\n", sep = "")
-
 # fetch huc ---------------------------------------------------------------
 
 cat("fetching huc dataset...")
 tbl_huc <- tbl(db, "catchment_huc12") %>%
-  filter(featureid %in% featureids) %>%
   collect()
 cat("done\n")
-
-if (!all(featureids %in% tbl_huc$featureid)) {
-  stop("obs featureids missing huc ids (n = ", length(setdiff(featureids, tbl_huc$featureid)), ")", sep = "")
-}
 
 df <- tbl_huc %>%
   mutate(
@@ -62,4 +47,4 @@ cat("done\n")
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished data-huc:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n")
+cat("finished data-huc:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")

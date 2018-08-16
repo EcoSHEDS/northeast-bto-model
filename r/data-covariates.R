@@ -1,9 +1,8 @@
-# fetch covariate datasets and huc ids for obs featureids
-# <- {wd}/data-obs.rds
+# fetch covariates dataset
 # -> {wd}/data-covariates.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting data-covariates:", as.character(start, tz = "US/Eastern"), "\n")
+cat("starting data-covariates:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(RPostgreSQL))
 suppressPackageStartupMessages(library(tidyverse))
@@ -23,15 +22,6 @@ db <- src_postgres(
   password = config$db$password
 )
 
-# load obs ----------------------------------------------------------------
-
-cat("loading obs dataset...")
-df_obs <- readRDS(file.path(config$wd, "data-obs.rds"))
-featureids <- unique(df_obs$featureid) %>% sort()
-cat("done\n")
-
-cat("# featureids with obs data: ", scales::comma(length(featureids)), "\n", sep = "")
-
 # fetch covariates --------------------------------------------------------
 
 covariate_ids_full <- c(
@@ -46,7 +36,6 @@ covariate_ids_riparian200 <- c(
 cat("fetching full covariates...")
 tbl_covariates_full <- tbl(db, "covariates") %>%
   filter(
-    featureid %in% featureids,
     variable %in% covariate_ids_full,
     zone == "upstream",
     is.na(riparian_distance_ft)
@@ -70,7 +59,6 @@ cat("done\n")
 cat("fetching riparian (200 ft) covariates...")
 tbl_covariates_riparian200 <- tbl(db, "covariates") %>%
   filter(
-    featureid %in% featureids,
     variable %in% covariate_ids_riparian200,
     zone == "upstream",
     riparian_distance_ft == 200
@@ -99,4 +87,4 @@ cat("done\n")
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished data-covariates:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n")
+cat("finished data-covariates:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")

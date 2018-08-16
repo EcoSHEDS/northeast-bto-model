@@ -5,7 +5,7 @@
 # -> {wd}/model-input.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
-cat("starting model-input:", as.character(start, tz = "US/Eastern"), "\n")
+cat("starting model-input:", as.character(start, tz = "US/Eastern"), "\n", sep = "")
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
@@ -20,9 +20,12 @@ config <- load_config()
 
 cat("loading obs, huc, covariates, temp datasets...")
 df_obs <- readRDS(file.path(config$wd, "data-obs.rds"))
-df_huc <- readRDS(file.path(config$wd, "data-huc.rds"))
-df_covariates <- readRDS(file.path(config$wd, "data-covariates.rds"))
-df_temp <- readRDS(file.path(config$wd, "data-temp.rds"))
+df_huc <- readRDS(file.path(config$wd, "data-huc.rds")) %>%
+  filter(featureid %in% df_obs$featureid)
+df_covariates <- readRDS(file.path(config$wd, "data-covariates.rds")) %>%
+  filter(featureid %in% df_obs$featureid)
+df_temp <- readRDS(file.path(config$wd, "data-temp.rds")) %>%
+  filter(featureid %in% df_obs$featureid)
 cat("done\n")
 
 # merge -------------------------------------------------------------------
@@ -138,5 +141,5 @@ cat("done\n")
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished model-input:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n")
+cat("finished model-input:", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
 
