@@ -165,7 +165,7 @@ df_max_temp7p <- lapply(seq_along(max_temp7p_probs), function(i) {
       value = max(temp7p_value)
     ) %>%
     mutate(
-      scenario = paste0("max_temp7p_occ", sprintf("%02d", max_temp7p_prob * 10))
+      scenario = paste0("max_temp7p_occ", max_temp7p_prob * 100)
     )
 }) %>%
   bind_rows()

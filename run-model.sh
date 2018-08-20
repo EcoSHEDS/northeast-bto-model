@@ -26,3 +26,6 @@ Rscript model-calib.R
 
 # check model validation
 Rscript model-valid.R
+
+# generate model predictions
+Rscript model-predict.R
