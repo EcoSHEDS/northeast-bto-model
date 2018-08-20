@@ -72,55 +72,155 @@ if (any(is.na(df))) {
 
 cat("standardizing covariates...")
 
-df_std <- inp$var_std
+df_var_std <- inp$var_std
 
-df_long <- df %>%
+df_z_long <- df %>%
   gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
-  left_join(df_std, by = "var") %>%
+  left_join(df_var_std, by = "var") %>%
   mutate(
     value = (value - mean) / sd
   )
 
-df <- df_long %>%
+df_z <- df_z_long %>%
   select(-mean, -sd) %>%
   spread(var, value)
 
 cat("done\n")
 
-if (any(is.na(df))) {
-  stop("ERROR: standardized dataset contains missing values (n = ", sum(is.na(df)), ")")
+if (any(is.na(df_z))) {
+  stop("ERROR: standardized dataset contains missing values (n = ", sum(is.na(df_z)), ")")
 }
 
 
-# predict -----------------------------------------------------------------
+# predict: temp7pN ----------------------------------------------------
+# increase meanJulyTemp by N degC
 
-cat("computing predictions and GOF stats...")
-df <- df %>%
+cat("calculating predictions for temp7p scenarios\n")
+temp7p_values <- seq(0, 6, by = 0.5)
+
+df_temp7p <- lapply(seq_along(temp7p_values), function (i) {
+  temp7p_value <- temp7p_values[i]
+  cat("computing temp7p scenario: ", temp7p_value, " degC\n", sep = "")
+
+  df_temp_scenario <- df %>%
+    mutate(
+      meanJulyTemp = meanJulyTemp + temp7p_value
+    )
+
+  df_temp_scenario_z_long <- df_temp_scenario %>%
+    gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
+    left_join(df_var_std, by = "var") %>%
+    mutate(
+      value = (value - mean) / sd
+    )
+
+  df_temp_scenario_z <- df_temp_scenario_z_long %>%
+    select(-mean, -sd) %>%
+    spread(var, value)
+
+  data_frame(
+    featureid = df_temp_scenario_z$featureid,
+    prob = inv.logit(predict(glmm, df_temp_scenario_z, allow.new.levels = TRUE))
+  ) %>%
+    mutate(
+      temp7p_value = temp7p_value
+    )
+}) %>%
+  bind_rows() %>%
   mutate(
-    pred_pct = inv.logit(predict(glmm, df, allow.new.levels = TRUE)),
-    pred_presence = pred_pct >= 0.5
+    scenario = paste0("temp7p", sprintf("%02d", temp7p_value * 10))
   )
+
+
+# table(df_temp7p$scenario)
+# df_temp7p %>%
+#   ggplot(aes(prob)) +
+#   geom_histogram() +
+#   facet_wrap(~ scenario)
+
+
+# predict: current --------------------------------------------------------
+
+cat("extracting predictions for current conditions...")
+df_current <- df_temp7p %>%
+  filter(temp7p_value == 0) %>%
+  select(-temp7p_value) %>%
+  mutate(scenario = "current")
 cat("done\n")
+
+
+
+# predict: max_temp7p_occN ------------------------------------------------
+# maximum mean July temperature increase corresponding with occupancy prob >= N
+
+cat("calculating predictions for max_temp7p_occN scenarios...")
+max_temp7p_probs <- c(0.3, 0.5, 0.7)
+
+df_max_temp7p <- lapply(seq_along(max_temp7p_probs), function(i) {
+  max_temp7p_prob <- max_temp7p_probs[i]
+  x <- df_temp7p %>%
+    filter(prob >= max_temp7p_prob) %>%
+    group_by(featureid) %>%
+    summarise(
+      value = max(temp7p_value)
+    ) %>%
+    mutate(
+      scenario = paste0("max_temp7p_occ", sprintf("%02d", max_temp7p_prob * 10))
+    )
+}) %>%
+  bind_rows()
+cat("done\n")
+#
+# table(df_max_temp7p$scenario)
+# df_max_temp7p %>%
+#   ggplot(aes(value)) +
+#   geom_histogram() +
+#   facet_wrap(~ scenario)
+
+# merge -------------------------------------------------------------------
+
+cat("merging prediction scenarios...")
+df <- df_current %>%
+  bind_rows(
+    df_temp7p %>%
+      filter(temp7p_value > 0) %>%
+      select(-temp7p_value)
+  ) %>%
+  mutate(scenario = paste0("occ_", scenario)) %>%
+  spread(scenario, prob) %>%
+  full_join(
+    df_max_temp7p %>%
+      spread(scenario, value),
+    by = "featureid"
+  )
+
+df <- df_huc %>%
+  select(featureid, huc12) %>%
+  left_join(
+    df,
+    by = "featureid"
+  )
+
+stopifnot(sum(duplicated(df$featureid)) == 0)
+cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
 # export ------------------------------------------------------------------
 
-list(
-  data = df
-) %>%
+cat("saving to model-predict.rds...")
+df %>%
   saveRDS(file.path(config$wd, "model-predict.rds"))
+cat("done\n")
 
-df_huc %>%
-  select(featureid) %>%
-  left_join(
-    df %>%
-      select(featureid, pred_pct, pred_presence),
-    by = "featureid"
+cat("saving to model-predict.csv...")
+df %>%
+  mutate(
+    featureid = sprintf("%.0f", featureid)
   ) %>%
   write_csv(file.path(config$wd, "model-predict.csv"), na = "")
+cat("done\n")
 
 # end ---------------------------------------------------------------------
 
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
-
-cat("finished model-predict: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished model-predict: ", as.character(end, tz = "US/Eastern"), "(elapsed = ", round(elapsed / 60, digits = 1), " min)\n", sep = "")
