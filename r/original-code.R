@@ -1,4 +1,4 @@
-# combine original model scripts from Conte-Ecology/Northeast_Bkt_Occupancy
+# original model scripts from Conte-Ecology/Northeast_Bkt_Occupancy repo
 
 library(tidyverse)
 library(lubridate)
