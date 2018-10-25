@@ -2,6 +2,7 @@
 # <- {wd}/data-obs.rds
 # <- {wd}/data-huc.rds
 # <- {wd}/data-covariates.rds
+# <- {wd}/data-temp.rds
 # -> {wd}/model-input.rds
 
 start <- lubridate::now(tzone = "US/Eastern")
@@ -48,12 +49,12 @@ cat("removing featureids with drainage area > 200 km2 (n = ", scales::comma(sum(
 df <- filter(df, AreaSqKM <= 200)
 cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
-cat("removing featureids with missing temp predictions (n = ", scales::comma(sum(is.na(df$meanJulyTemp))), ")...", sep = "")
-df <- filter(df, !is.na(meanJulyTemp))
+cat("removing featureids with missing temp predictions (n = ", scales::comma(sum(is.na(df$mean_jul_temp))), ")...", sep = "")
+df <- filter(df, !is.na(mean_jul_temp))
 cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
-cat("removing featureids with [mean # days > 18 degC] >= 300 (n = ", scales::comma(sum(df$meanDays.18 >= 300)), ")...", sep = "")
-df <- filter(df, meanDays.18 < 300)
+cat("removing featureids with [mean # days > 18 degC] >= 300 (n = ", scales::comma(sum(df$n_day_temp_gt_18 >= 300)), ")...", sep = "")
+df <- filter(df, n_day_temp_gt_18 < 300)
 cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
 if (any(is.na(df))) {
@@ -92,7 +93,7 @@ cat("done\n")
 valid_frac <- 0.2
 calib_frac <- 1 - valid_frac
 
-cat("splitting dataset into calibration (", scales::percent(calib_frac), ") and validation (", scales::percent(valid_frac), ") by huc10...")
+cat("splitting dataset into calibration (", scales::percent(calib_frac), ") and validation (", scales::percent(valid_frac), ") by huc10...", sep = "")
 n_calib_huc10 <- floor(length(unique(df_std$huc10)) * (1 - valid_frac))
 
 set.seed(24744)
@@ -141,5 +142,5 @@ cat("done\n")
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished model-input: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished model-input: ", as.character(end, tz = "US/Eastern"), " (elapsed = ", round(elapsed, digits = 1), " sec)\n", sep = "")
 

@@ -55,12 +55,12 @@ cat("removing featureids with drainage area > 200 km2 (n = ", scales::comma(sum(
 df <- filter(df, AreaSqKM <= 200)
 cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
-cat("removing featureids with missing temp predictions (n = ", scales::comma(sum(is.na(df$meanJulyTemp))), ")...", sep = "")
-df <- filter(df, !is.na(meanJulyTemp))
+cat("removing featureids with missing temp predictions (n = ", scales::comma(sum(is.na(df$mean_jul_temp))), ")...", sep = "")
+df <- filter(df, !is.na(mean_jul_temp))
 cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
-cat("removing featureids with [mean # days > 18 degC] >= 300 (n = ", scales::comma(sum(df$meanDays.18 >= 300)), ")...", sep = "")
-df <- filter(df, meanDays.18 < 300)
+cat("removing featureids with [mean # days > 18 degC] >= 300 (n = ", scales::comma(sum(df$n_day_temp_gt_18 >= 300)), ")...", sep = "")
+df <- filter(df, n_day_temp_gt_18 < 300)
 cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
 
 if (any(is.na(df))) {
@@ -93,7 +93,7 @@ if (any(is.na(df_z))) {
 
 
 # predict: temp7pN ----------------------------------------------------
-# increase meanJulyTemp by N degC
+# increase mean_jul_temp by N degC
 
 cat("calculating predictions for temp7p scenarios\n")
 temp7p_values <- seq(0, 6, by = 0.5)
@@ -104,7 +104,7 @@ df_temp7p <- lapply(seq_along(temp7p_values), function (i) {
 
   df_temp_scenario <- df %>%
     mutate(
-      meanJulyTemp = meanJulyTemp + temp7p_value
+      mean_jul_temp = mean_jul_temp + temp7p_value
     )
 
   df_temp_scenario_z_long <- df_temp_scenario %>%
@@ -223,4 +223,4 @@ cat("done\n")
 
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
-cat("finished model-predict: ", as.character(end, tz = "US/Eastern"), "(elapsed = ", round(elapsed / 60, digits = 1), " min)\n", sep = "")
+cat("finished model-predict: ", as.character(end, tz = "US/Eastern"), " (elapsed = ", round(elapsed / 60, digits = 1), " min)\n", sep = "")

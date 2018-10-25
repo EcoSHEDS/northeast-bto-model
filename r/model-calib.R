@@ -29,7 +29,7 @@ df <- inp$calib$data_std
 
 cat("fitting model using glmer...")
 glmm <- glmer(
-  presence ~ AreaSqKM * summer_prcp_mm + meanJulyTemp + forest + allonnet + devel_hi + agriculture + meanJulyTemp * forest + summer_prcp_mm * forest + (1 + AreaSqKM + agriculture + summer_prcp_mm + meanJulyTemp | huc10),
+  presence ~ AreaSqKM * summer_prcp_mm + mean_jul_temp + forest + allonnet + devel_hi + agriculture + mean_jul_temp * forest + summer_prcp_mm * forest + (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
   family = binomial(link = "logit"),
   data = df,
   control = glmerControl(optimizer="bobyqa")
@@ -76,5 +76,5 @@ list(
 end <- lubridate::now(tzone = "US/Eastern")
 elapsed <- as.numeric(difftime(end, start, tz = "US/Eastern", units = "sec"))
 
-cat("finished model-calib: ", as.character(end, tz = "US/Eastern"), "( elapsed =", round(elapsed / 60, digits = 1), "min )\n", sep = "")
+cat("finished model-calib: ", as.character(end, tz = "US/Eastern"), " (elapsed = ", round(elapsed, digits = 1), " sec)\n", sep = "")
 
