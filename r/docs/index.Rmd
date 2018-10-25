@@ -1,7 +1,7 @@
 --- 
 title: "SHEDS Brook Trout Occupancy Model"
 author: "[Jeff Walker](https://walkerenvres.com), [Ben Letcher](https://www.lsc.usgs.gov/?q=cafb-ben-letcher), and [Dan Hocking](https://hockinglab.weebly.com/)"
-date: "v0.9.0 (Aug 16, 2018)"
+date: "v1.0.0 (Oct 25, 2018)"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -111,6 +111,8 @@ The source code for the model itself and this documentation is available in the 
 
 ## Change Log {#change-log}
 
+- **[v1.0.0 (Oct 25, 2018)](http://ecosheds.org/models/bto/v1.0.0/)**  
+Recalibrate model using v1.0 of stream temperature model.
 - **[v0.9.0 (Aug 16, 2018)](http://ecosheds.org/models/bto/v0.9.0/)**  
 Preliminary release of the new model framework and documentation.
 - **[Previous Versions](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/) (prior to 2018)**  

@@ -39,7 +39,7 @@ plot_model(glmm, title = "Fixed Effects")
 
 ```{r, fig.width=10, fig.height=12, warning = FALSE}
 df <- calib$data
-vars <- c("AreaSqKM", "summer_prcp_mm", "meanJulyTemp", "forest", "allonnet", "devel_hi", "agriculture")
+vars <- c("AreaSqKM", "summer_prcp_mm", "mean_jul_temp", "forest", "allonnet", "devel_hi", "agriculture")
 
 p_eff <- lapply(vars, function (v) {
   plot_model(glmm, type = "eff", terms = v, title = paste0("Fixed Effect: ", v), axis.lim = c(0, 1))
