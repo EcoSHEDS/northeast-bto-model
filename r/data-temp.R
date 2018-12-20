@@ -15,8 +15,8 @@ config <- load_config()
 
 # load --------------------------------------------------------------------
 
-cat("loading temp model derived metrics (", config$temp$path, ")...", sep = "")
-df_all <- read_csv(config$temp$path, col_types = cols(
+cat("loading temp model derived metrics (", config$stm$output, ")...", sep = "")
+df_all <- read_csv(config$stm$output, col_types = cols(
   featureid = col_double(),
   mean_max_temp = col_double(),
   max_max_temp = col_double(),

@@ -1,4 +1,4 @@
 #!/bin/bash
 # Brook trout occupancy model version
 
-SHEDS_BTO_VERSION=1.0
+SHEDS_BTO_VERSION=1.0-dev

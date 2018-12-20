@@ -20,8 +20,8 @@ load_config <- function(path = "../") {
       port = Sys.getenv("SHEDS_BTO_DB_PORT"),
       user = Sys.getenv("SHEDS_BTO_DB_USER")
     ),
-    temp = list(
-      path = Sys.getenv("SHEDS_BTO_TEMP_PATH")
+    stm = list(
+      output = Sys.getenv("SHEDS_BTO_STM_OUTPUT")
     )
   )
 }
