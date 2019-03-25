@@ -109,11 +109,11 @@ The source code for the model itself and this documentation is available in the 
 
 ## Change Log {#change-log}
 
-- **[v1.1.0 (Mar 25, 2019)](http://ecosheds.org/models/bto/v1.1.0/)**  
+- **[v1.1.0 (Mar 25, 2019)](http://ecosheds.org/models/brook-trout-occupancy/v1.1.0/)**  
 Add observation data from MA DFW. Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
-- **[v1.0.0 (Oct 25, 2018)](http://ecosheds.org/models/bto/v1.0.0/)**  
+- **[v1.0.0 (Oct 25, 2018)](http://ecosheds.org/models/brook-trout-occupancy/v1.0.0/)**  
 Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
-- **[v0.9.0 (Aug 16, 2018)](http://ecosheds.org/models/bto/v0.9.0/)**  
+- **[v0.9.0 (Aug 16, 2018)](http://ecosheds.org/models/brook-trout-occupancy/v0.9.0/)**  
 Preliminary release of the new model framework and documentation.
 - **[Previous Versions](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/) (prior to 2018)**  
 Previous versions of the brook trout occupancy model can be found [here](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/). That website is now deprecated, but will remain available for future reference. Beginning with v1.0.0 of the new framework and codebase, all model changes and results will be tracked and made available.
