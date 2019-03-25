@@ -118,7 +118,7 @@ df_temp7p <- lapply(seq_along(temp7p_values), function (i) {
     select(-mean, -sd) %>%
     spread(var, value)
 
-  data_frame(
+  tibble(
     featureid = df_temp_scenario_z$featureid,
     prob = inv.logit(predict(glmm, df_temp_scenario_z, allow.new.levels = TRUE))
   ) %>%

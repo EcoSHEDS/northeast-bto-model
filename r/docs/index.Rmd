@@ -1,7 +1,7 @@
 --- 
 title: "SHEDS Brook Trout Occupancy Model"
 author: "[Jeff Walker](https://walkerenvres.com), [Ben Letcher](https://www.lsc.usgs.gov/?q=cafb-ben-letcher), and [Dan Hocking](https://hockinglab.weebly.com/)"
-date: "v1.0.0 (Oct 25, 2018)"
+date: "v1.1.0 (Mar 25, 2019)"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -65,12 +65,10 @@ stat_labels <- c(
 )
 
 bind_cols(
-  data_frame(
+  tibble(
     dataset = c("calibration", "validation")
   ),
-  as_data_frame(
-    bind_rows(calib$pred$stats, valid$pred$stats)
-  )
+  bind_rows(calib$pred$stats, valid$pred$stats)
 ) %>%
   mutate_at(vars(n), scales::comma) %>% 
   mutate_at(
@@ -111,8 +109,10 @@ The source code for the model itself and this documentation is available in the 
 
 ## Change Log {#change-log}
 
+- **[v1.1.0 (Mar 25, 2019)](http://ecosheds.org/models/bto/v1.1.0/)**  
+Add observation data from MA DFW. Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
 - **[v1.0.0 (Oct 25, 2018)](http://ecosheds.org/models/bto/v1.0.0/)**  
-Recalibrate model using v1.0 of stream temperature model.
+Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
 - **[v0.9.0 (Aug 16, 2018)](http://ecosheds.org/models/bto/v0.9.0/)**  
 Preliminary release of the new model framework and documentation.
 - **[Previous Versions](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/) (prior to 2018)**  

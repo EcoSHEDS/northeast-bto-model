@@ -71,6 +71,14 @@ Or by opening each script in RStudio and running them line by line in an interac
 
 The last option is probably the most practical for new users to understand what the model scripts do exactly.
 
+## Exporting Results to Database
+
+The `r/export-db.R` script copies the model predictions (`model-predict.rds`) to the database. This script is *NOT* included in `run-model.sh`, and therefore must be run separately. This script will fail if results with the same version are already present within the database due to the unique constraint on `bto_model(version, featureid, variable)`.
+
+```
+cd r
+Rscript export-db.R
+```
 
 ## Working Directory
 

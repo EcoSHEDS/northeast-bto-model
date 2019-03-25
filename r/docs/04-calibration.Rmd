@@ -6,6 +6,7 @@ library(boot)
 library(lme4)
 library(tidyverse)
 library(gridExtra)
+library(ggeffects)
 library(sjPlot)
 source("../functions.R")
 
@@ -14,9 +15,25 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = 
 
 theme_set(theme_bw())
 
+inp <- readRDS(file.path(config$wd, "model-input.rds"))
 calib <- readRDS(file.path(config$wd, "model-calib.rds"))
 glmm <- calib$model
 valid <- readRDS(file.path(config$wd, "model-valid.rds"))
+
+variable_labels <- c(
+  "(Intercept)" = "Intercept",
+  "AreaSqKM" = "Drainage Area (km2)",
+  "summer_prcp_mm" = "Summer Precip (mm)",
+  "mean_jul_temp" = "Mean July Temp (degC)",
+  "forest" = "% Forest",
+  "allonnet" = "% Impounded Drainage Area",
+  "devel_hi" = "% Developed, High Intensity",
+  "agriculture" = "% Agriculture",
+  "AreaSqKM:summer_prcp_mm" = "(% Agriculture:Summer Precip)",
+  "mean_jul_temp:forest" = "(Mean July Temp:% Forest)",
+  "summer_prcp_mm:forest" = "(Summer Precip:% Forest)"
+)
+
 ```
 
 ## Parameter Estimates
@@ -26,33 +43,192 @@ valid <- readRDS(file.path(config$wd, "model-valid.rds"))
 ```{r}
 summary(glmm)$coefficients %>% 
   as.data.frame() %>% 
-  rownames_to_column() %>% 
+  rownames_to_column() %>%
+  mutate(
+    rowname = plyr::revalue(rowname, variable_labels)
+  ) %>% 
   rename(Variable = rowname, `z Value` = `z value`, `p Value` = `Pr(>|z|)`) %>% 
   knitr::kable(digits = 3)
 ```
 
 ```{r, fig.width=8, fig.height=5}
-plot_model(glmm, title = "Fixed Effects")
+plot_model(glmm, title = "Fixed Effects", order.terms = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) +
+  scale_x_discrete(labels = variable_labels)
 ```
 
 #### Marginal Effect Plots
 
-```{r, fig.width=10, fig.height=12, warning = FALSE}
-df <- calib$data
-vars <- c("AreaSqKM", "summer_prcp_mm", "mean_jul_temp", "forest", "allonnet", "devel_hi", "agriculture")
+```{r}
+unstandardize <- function (v, x) {
+  var_std <- inp$var_std %>% 
+    filter(var == v) %>% 
+    as.list()
+  
+  var_std$mean + var_std$sd * x
+}
+standardize <- function (v, x) {
+  var_std <- inp$var_std %>% 
+    filter(var == v) %>% 
+    as.list()
+  
+  (x - var_std$mean) / var_std$sd
+}
+make_term <- function (v, x_range) {
+  var_std <- inp$var_std %>% 
+    filter(var == v) %>% 
+    as.list()
+  paste0(v, " [", paste(standardize(v, x_range), collapse = ","), "]")
+}
+plot_single_effect <- function(v, x_range) {
+  ggpredict(glmm, terms = make_term(v, x_range)) %>% 
+    mutate(
+      x2 = unstandardize(v, x)
+    ) %>% 
+    ggplot(aes(x2, predicted)) +
+    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.25) +
+    geom_line() +
+    ylim(0, 1)
+}
+```
 
-p_eff <- lapply(vars, function (v) {
-  plot_model(glmm, type = "eff", terms = v, title = paste0("Fixed Effect: ", v), axis.lim = c(0, 1))
-})
+```{r, fig.width=6, fig.height=4}
+# range(inp$calib$data$agriculture)
+plot_single_effect("agriculture", seq(0, 100, by = 1)) +
+  labs(
+    x = "% Agriculture",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: % Agriculture"
+  )
+```
 
-grid.arrange(grobs = p_eff, ncol = 2)
+```{r, fig.width=6, fig.height=4}
+# range(inp$calib$data$allonnet)
+plot_single_effect("allonnet", seq(0, 100, by = 1)) +
+  labs(
+    x = "% Impounded Drainage Area",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: % Impounded Drainage Area"
+  )
+```
+
+```{r, fig.width=6, fig.height=4}
+# range(inp$calib$data$devel_hi)
+plot_single_effect("devel_hi", seq(0, 100, by = 1)) +
+  labs(
+    x = "% Developed, High Intensity",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: % Developed, High Intensity"
+  )
+```
+
+```{r, fig.width=6, fig.height=4}
+# range(inp$calib$data$mean_jul_temp)
+# range(inp$calib$data$forest)
+ggpredict(glmm, terms = c(make_term("mean_jul_temp", seq(12, 27, by = 0.1)), make_term("forest", c(0, 50, 100)))) %>% 
+  mutate(
+    x2 = unstandardize("mean_jul_temp", x),
+    group2 = round(unstandardize("forest", parse_number(as.character(group))), 2)
+  ) %>% 
+  ggplot(aes(x2, predicted)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
+  geom_line(aes(color = factor(group2))) +
+  scale_color_discrete(name = "% Forest") +
+  scale_fill_discrete(name = "% Forest") +
+  ylim(0, 1) +
+  labs(
+    x = "Mean July Stream Temperature (degC)",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: Mean July Stream Temperature",
+    subtitle = "Interaction Term: % Forest"
+  ) +
+  theme(
+    legend.position = c(0.99, 0.99),
+    legend.justification = c(1, 1)
+  )
+```
+
+```{r, fig.width=6, fig.height=4}
+# range(inp$calib$data$AreaSqKM)
+# range(inp$calib$data$summer_prcp_mm)
+ggpredict(glmm, terms = c(make_term("AreaSqKM", seq(0, 200, by = 20)), make_term("summer_prcp_mm", c(250, 350, 450)))) %>% 
+  mutate(
+    x2 = unstandardize("AreaSqKM", x),
+    group2 = round(unstandardize("summer_prcp_mm", parse_number(as.character(group))), 2)
+  ) %>% 
+  ggplot(aes(x2, predicted)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
+  geom_line(aes(color = factor(group2))) +
+  scale_color_discrete(name = "Summer Precip (mm)") +
+  scale_fill_discrete(name = "Summer Precip (mm)") +
+  ylim(0, 1) +
+  labs(
+    x = "Drainage Area (sq. km.)",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: Drainage Area",
+    subtitle = "Interaction Term: Summer Precip"
+  ) +
+  theme(
+    legend.position = c(0.01, 0.01),
+    legend.justification = c(0, 0)
+  )
+```
+
+```{r, fig.width=10, fig.height=4}
+# range(inp$calib$data$summer_prcp_mm)
+# range(inp$calib$data$AreaSqKM)
+# range(inp$calib$data$forest)
+ggpredict(glmm, terms = c(make_term("summer_prcp_mm", seq(240, 470, by = 10)), make_term("AreaSqKM", c(5, 20, 50)), make_term("forest", c(0, 50, 100)))) %>% 
+  mutate(
+    x2 = unstandardize("summer_prcp_mm", x),
+    group2 = round(unstandardize("AreaSqKM", parse_number(as.character(group))), 2),
+    `% Forest` = round(unstandardize("forest", parse_number(as.character(facet))), 2)
+  ) %>% 
+  ggplot(aes(x2, predicted)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
+  geom_line(aes(color = factor(group2))) +
+  scale_color_discrete(name = "Drainage Area\n(km2)") +
+  scale_fill_discrete(name = "Drainage Area\n(km2)") +
+  ylim(0, 1) +
+  facet_wrap(vars(`% Forest`), nrow = 1, labeller = label_both) +
+  labs(
+    x = "Summer Precip (mm)",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: Summer Precip (mm)",
+    subtitle = "Interaction Terms: Drainage Area, % Forest"
+  )
+```
+
+
+```{r, fig.width=10, fig.height=4}
+# range(inp$calib$data$forest)
+# range(inp$calib$data$mean_jul_temp)
+# range(inp$calib$data$summer_prcp_mm)
+ggpredict(glmm, terms = c(make_term("forest", seq(0, 100, by = 1)), make_term("mean_jul_temp", c(16, 18, 20, 22, 24)), make_term("summer_prcp_mm", c(250, 350, 450)))) %>% 
+  mutate(
+    x2 = unstandardize("forest", x),
+    group2 = round(unstandardize("mean_jul_temp", parse_number(as.character(group))), 2),
+    `Summer Precip (mm)` = round(unstandardize("summer_prcp_mm", parse_number(as.character(facet))), 2)
+  ) %>% 
+  ggplot(aes(x2, predicted)) +
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
+  geom_line(aes(color = factor(group2))) +
+  scale_color_discrete(name = "Mean July\nTemp (degC)") +
+  scale_fill_discrete(name = "Mean July\nTemp (degC)") +
+  ylim(0, 1) +
+  facet_wrap(vars(`Summer Precip (mm)`), nrow = 1, labeller = label_both) +
+  labs(
+    x = "% Forest",
+    y = "Predicted Probability of Presence",
+    title = "Fixed Effect: % Forest",
+    subtitle = "Interaction Terms: Summer Precip, Mean July Temp"
+  )
 ```
 
 ### Random Effects
 
 Distribution of each random effect over all HUC10's. 
 
-```{r, fig.width=10, fig.height=6}
+```{r, fig.width=10, fig.height=10}
 ranef(glmm)$huc10 %>%
   as.data.frame() %>% 
   rownames_to_column(var = "huc10") %>% 
@@ -60,8 +236,8 @@ ranef(glmm)$huc10 %>%
   ggplot(aes(value)) +
   geom_histogram() +
   labs(
-    x = "Value",
-    y = "Count"
+    x = "Effect Size",
+    y = "Count (# HUC10s)"
   ) +
   facet_wrap(~ var, scales = "free", ncol = 2)
 ```
@@ -82,12 +258,10 @@ stat_labels <- c(
 )
 
 bind_cols(
-  data_frame(
+  tibble(
     dataset = c("calibration", "validation")
   ),
-  as_data_frame(
-    bind_rows(calib$pred$stats, valid$pred$stats)
-  )
+  bind_rows(calib$pred$stats, valid$pred$stats)
 ) %>%
   mutate_at(vars(n), scales::comma) %>% 
   mutate_at(
