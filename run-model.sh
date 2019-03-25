@@ -8,7 +8,7 @@ cd ./r
 
 # process raw MA DFW dataset
 # only need to run once, results saved to data/obs/madfw-ebt.csv and tracked by git
-Rscript data-obs-madfw.R
+# Rscript data-obs-madfw.R
 
 # import observation (presence/absence) dataset
 Rscript data-obs.R
