@@ -42,7 +42,7 @@ cat("done\n")
 
 cat(
   "summary stats--------------\n",
-  "  n = ", scales::comma(length(pred$y_pred)), "\n",
+  "  n = ", scales::comma(pred$stats$n), "\n",
   "  % obs pos = ", scales::percent(mean(pred$y_obs)), "\n",
   "  % pred pos = ", scales::percent(mean(pred$y_pred)), "\n",
   "  sensitivity = ", sprintf("%.3f", pred$stats$sens), "\n",

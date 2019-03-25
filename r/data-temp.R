@@ -13,26 +13,30 @@ source("functions.R")
 
 config <- load_config()
 
+# fetch covariates from db
+db <- src_postgres(
+  dbname = config$db$dbname,
+  host = config$db$host,
+  port = config$db$port,
+  user = config$db$user,
+  password = config$db$password
+)
+
 # load --------------------------------------------------------------------
 
-cat("loading temp model derived metrics (", config$stm$output, ")...", sep = "")
-df_all <- read_csv(config$stm$output, col_types = cols(
-  featureid = col_double(),
-  mean_max_temp = col_double(),
-  max_max_temp = col_double(),
-  mean_jun_temp = col_double(),
-  mean_jul_temp = col_double(),
-  mean_aug_temp = col_double(),
-  mean_summer_temp = col_double(),
-  max_temp_30d = col_double(),
-  n_day_temp_gt_18 = col_double(),
-  n_day_temp_gt_20 = col_double(),
-  n_day_temp_gt_22 = col_double(),
-  resist = col_double()
-))
-cat("done\n")
+cat("loading stream temperature model results (version ", config$stm$version, ")...", sep = "")
 
-df <- df_all[, c("featureid", "mean_jul_temp", "mean_summer_temp", "n_day_temp_gt_18")]
+df <- tbl(db, "temp_model") %>%
+  select(featureid, version, variable, value) %>%
+  filter(
+    version == config$stm$version,
+    variable %in% c("mean_jul_temp", "mean_summer_temp", "n_day_temp_gt_18")
+  ) %>%
+  collect() %>%
+  select(-version) %>%
+  spread(variable, value) %>%
+  select(featureid, mean_jul_temp, mean_summer_temp, n_day_temp_gt_18)
+cat("done\n")
 
 stopifnot(sum(duplicated(df$featureid)) == 0)
 

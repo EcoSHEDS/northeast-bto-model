@@ -21,7 +21,7 @@ load_config <- function(path = "../") {
       user = Sys.getenv("SHEDS_BTO_DB_USER")
     ),
     stm = list(
-      output = Sys.getenv("SHEDS_BTO_STM_OUTPUT")
+      version = Sys.getenv("SHEDS_BTO_STM_VERSION")
     )
   )
 }
@@ -34,7 +34,7 @@ model_pred <- function(m, df) {
   y_obs <- df$presence
 
   pred_roc <- roc(y_pred, as.factor(y_obs))
-  df_roc <- data_frame(
+  df_roc <- tibble(
     cutoff = pred_roc[[1]],
     fpr = pred_roc[[2]],
     tpr = pred_roc[[3]]
@@ -65,14 +65,14 @@ plot_auc <- function(y_pred, y_obs) {
   x_acc <- accuracy(y_pred, as.factor(y_obs))
   x_roc <- roc(y_pred, as.factor(y_obs))
 
-  p_sens <- data_frame(
+  p_sens <- tibble(
     cutoff = x_sens$cutoffs,
     value = x_sens$measure
   ) %>%
     ggplot(aes(cutoff, value)) +
     geom_line() +
     geom_label(
-      data = data_frame(auc = auc(x_sens)),
+      data = tibble(auc = auc(x_sens)),
       aes(x = 0.01, y = 0.01, label = paste0("Sensitivity = ", sprintf("%.2f", auc))),
       hjust = 0, vjust = 0
     ) +
@@ -86,14 +86,14 @@ plot_auc <- function(y_pred, y_obs) {
     ) +
     theme(aspect.ratio = 1)
 
-  p_spec <- data_frame(
+  p_spec <- tibble(
     cutoff = x_spec$cutoffs,
     value = x_spec$measure
   ) %>%
     ggplot(aes(cutoff, value)) +
     geom_line() +
     geom_label(
-      data = data_frame(auc = auc(x_spec)),
+      data = tibble(auc = auc(x_spec)),
       aes(x = 0.99, y = 0.01, label = paste0("Specificity = ", sprintf("%.2f", auc))),
       hjust = 1, vjust = 0
     ) +
@@ -107,14 +107,14 @@ plot_auc <- function(y_pred, y_obs) {
     ) +
     theme(aspect.ratio = 1)
 
-  p_acc <- data_frame(
+  p_acc <- tibble(
     cutoff = x_acc$cutoffs,
     value = x_acc$measure
   ) %>%
     ggplot(aes(cutoff, value)) +
     geom_line() +
     geom_label(
-      data = data_frame(auc = auc(x_acc)),
+      data = tibble(auc = auc(x_acc)),
       aes(x = 0.01, y = 0.01, label = paste0("Accuracy = ", sprintf("%.2f", auc))),
       hjust = 0, vjust = 0
     ) +
@@ -128,7 +128,7 @@ plot_auc <- function(y_pred, y_obs) {
     ) +
     theme(aspect.ratio = 1)
 
-  p_roc <- data_frame(
+  p_roc <- tibble(
     fpr = x_roc$fpr,
     tpr = x_roc$tpr
   ) %>%
@@ -136,7 +136,7 @@ plot_auc <- function(y_pred, y_obs) {
     geom_abline(color = "gray80") +
     geom_line() +
     geom_label(
-      data = data_frame(auc = auc(x_roc)),
+      data = tibble(auc = auc(x_roc)),
       aes(x = 0.99, y = 0.01, label = paste0("AUC = ", sprintf("%.2f", auc))),
       hjust = 1, vjust = 0
     ) +

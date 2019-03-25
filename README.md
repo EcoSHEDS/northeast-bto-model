@@ -161,12 +161,11 @@ SHEDS_BTO_DB_DBNAME="dbname"
 # model root directory
 SHEDS_BTO_ROOT="/path/to/bto-model-data/"
 
-# stream temperature model (STM) output
-SHEDS_BTO_STM_OUTPUT="/path/to/model-predict-derived.csv"
+# stream temperature model version
+SHEDS_BTO_STM_VERSION="1.0"
 ```
 
-The last variable (`SHEDS_BTO_STM_OUTPUT`) contains the local path to the derived metrics output dataset (model-predict-derived.csv) from the stream temperature model. In the future, this variable will be replaced by a variable defining the stream temperature model **version**, which will allow the R scripts to load the output dataset directly from the database instead of by reading a CSV file. But this functionality is not yet available.
-
+The last variable (`SHEDS_BTO_STM_VERSION`) corresponds to the version of the stream temperature model that should be loaded into the brook trout occupancy model from the database.
 
 ## Model Version
 
