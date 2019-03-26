@@ -33,3 +33,9 @@ Rscript model-valid.R
 
 # generate model predictions
 Rscript model-predict.R
+
+# save derived metrics to database
+Rscript export-db.R                     # -> db{bto_model}
+
+# save derived metrics to csv
+Rscript export-csv.R                    # -> csv/sheds-bto-model-v{VERSION}.csv

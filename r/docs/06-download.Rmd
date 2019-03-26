@@ -1,0 +1,84 @@
+# Download
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+source("../functions.R")
+config <- load_config("../../")
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+```
+
+## Brook Trout Occupancy Model Predictions
+
+The brook trout occupancy model predictions can be downloaded as a static CSV file from the following link.
+
+> **[Brook Trout Occupancy Predictions v`r config$version` (csv)](http://ecosheds.org/models/brook-trout-occupancy/output/sheds-bto-model-v`r config$version`.csv)**
+
+This file contains the following headers:
+
+```{r}
+df_columns <- tribble(
+  ~column, ~label,
+  "featureid","Catchment ID",
+  "occ_current","Occupancy Probability (Current Conditions)",
+  "occ_temp7p05","Occupancy Probability (July temp +0.5 degC increase)",
+  "occ_temp7p10","Occupancy Probability (July temp +1.0 degC increase)",
+  "occ_temp7p15","Occupancy Probability (July temp +1.5 degC increase)",
+  "occ_temp7p20","Occupancy Probability (July temp +2.0 degC increase)",
+  "occ_temp7p25","Occupancy Probability (July temp +2.5 degC increase)",
+  "occ_temp7p30","Occupancy Probability (July temp +3.0 degC increase)",
+  "occ_temp7p35","Occupancy Probability (July temp +3.5 degC increase)",
+  "occ_temp7p40","Occupancy Probability (July temp +4.0 degC increase)",
+  "occ_temp7p45","Occupancy Probability (July temp +4.5 degC increase)",
+  "occ_temp7p50","Occupancy Probability (July temp +5.0 degC increase)",
+  "occ_temp7p55","Occupancy Probability (July temp +5.5 degC increase)",
+  "occ_temp7p60","Occupancy Probability (July temp +6.0 degC increase)",
+  "max_temp7p_occ30","Max July Temp. Increase (degC) for 30% Occupancy Probability",
+  "max_temp7p_occ50","Max July Temp. Increase (degC) for 50% Occupancy Probability",
+  "max_temp7p_occ70","Max July Temp. Increase (degC) for 70% Occupancy Probability"
+)
+knitr::kable(df_columns, col.names = c("CSV Column", "Description"), align = "rl")
+```
+
+## Catchment Delineation Shapefiles
+
+The [SHEDS catchment delineation](http://conte-ecology.github.io/shedsGisData/) (NHDHRDV2) are available as a series of shapefiles, pre-staged by 2-digit hydrologic unit codes (HUCs). The model predictions and covariates CSV files can be joined to these shapefiles using the mutual `featureid` column.
+
+```{r}
+knitr::include_graphics("img/hydrologic-regions.png")
+```
+
+- [Region 01 Catchments (zipped shp)](http://ecosheds.org/assets/nhdhrd/v2/spatial_01.zip)
+- [Region 02 Catchments (zipped shp)](http://ecosheds.org/assets/nhdhrd/v2/spatial_02.zip)
+- [Region 03 Catchments (zipped shp)](http://ecosheds.org/assets/nhdhrd/v2/spatial_03.zip)
+- [Region 04 Catchments (zipped shp)](http://ecosheds.org/assets/nhdhrd/v2/spatial_04.zip)
+- [Region 05 Catchments (zipped shp)](http://ecosheds.org/assets/nhdhrd/v2/spatial_05.zip)
+- [Region 06 Catchments (zipped shp)](http://ecosheds.org/assets/nhdhrd/v2/spatial_06.zip)
+
+The documentation for the catchment delineation is also available:
+
+> **[Catchment Delineation (NHDHRDV2) Documentation (docx)](http://ecosheds.org/assets/nhdhrd/v2/NHDHRDV2_Documentation.docx)**
+
+## Catchment Covariates Dataset
+
+The [SHEDS catchment covariates](http://conte-ecology.github.io/shedsGisData/) are available as a series of CSV files, pre-staged by 2-digit hydrologic unit codes (HUCs). The covariates contain the catchment characteristics that are used as input variables to the stream temperature model.
+
+- [Region 01 Covariates (zipped csv)](http://ecosheds.org/assets/nhdhrd/v2/covariates_01.zip)
+- [Region 02 Covariates (zipped csv)](http://ecosheds.org/assets/nhdhrd/v2/covariates_02.zip)
+- [Region 03 Covariates (zipped csv)](http://ecosheds.org/assets/nhdhrd/v2/covariates_03.zip)
+- [Region 04 Covariates (zipped csv)](http://ecosheds.org/assets/nhdhrd/v2/covariates_04.zip)
+- [Region 05 Covariates (zipped csv)](http://ecosheds.org/assets/nhdhrd/v2/covariates_05.zip)
+- [Region 06 Covariates (zipped csv)](http://ecosheds.org/assets/nhdhrd/v2/covariates_06.zip)
+
+The documentation for catchment covariates is also available:
+
+> **[Catchment Covariates Documentation (docx)](http://ecosheds.org/assets/nhdhrd/v2/NHDHRDV2_Covariate_Documentation.xlsx)**
+
+## Stream Temperature Predictions
+
+The SHEDS stream temperature model predictions used as inputs to the brook trout occupancy model can be downloaded from:
+
+- [SHEDS Stream Temperature Model (v`r config$stm$version`) Predictions (csv)](http://ecosheds.org/models/stream-temperature/output/sheds-temp-model-v`r config$stm$version`.csv)
+
+Documentation for the stream temperature model is available at:
+
+> **[SHEDS Stream Temperature Model Documentation](http://ecosheds.org/models/stream-temperature/v`r config$stm$version`/)**

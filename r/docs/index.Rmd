@@ -1,7 +1,7 @@
 --- 
 title: "SHEDS Brook Trout Occupancy Model"
 author: "[Jeff Walker](https://walkerenvres.com), [Ben Letcher](https://www.lsc.usgs.gov/?q=cafb-ben-letcher), and [Dan Hocking](https://hockinglab.weebly.com/)"
-date: "v1.1.0 (Mar 25, 2019)"
+date: "v1.1.1 (Mar 26, 2019)"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -42,6 +42,7 @@ The documentation is divided into the following sections:
 1. [Data Processing] : describes how input datasets are processed prior to model fitting (i.e. QAQC procedures) 
 1. [Calibration and Validation] : describes how well the model predicts occupancy based on observations that were included (calibration) and excluded (validation) from the model fitting process
 1. [Predictions] : describes how predictions are generated after the model is calibrated and describes the various summary metrics that are computed for each catchment
+1. [Download] : provides links to download the model predictions, catchment delineation (shapefiles), and covariates dataset.
 
 The model will be periodically updated and re-calibrated (approximately once every 6 months) to incorporate any newly available data or updated stream temperature model results, and to make any necessary revisions to the data processing and/or model structure. With each update, a new version will be assigned to the model, and this documentation website will be updated to reflect the most recent performance of the model. A brief summary of the changes associated with each new version is provided in the [Change Log](#change-log) below.
 
@@ -109,6 +110,8 @@ The source code for the model itself and this documentation is available in the 
 
 ## Change Log {#change-log}
 
+- **[v1.1.1 (Mar 26, 2019)](http://ecosheds.org/models/stream-temperature/v1.1.1/)**  
+Update documentation, add [Download] section containing links to model predictions, catchment delineation, and covariates.
 - **[v1.1.0 (Mar 25, 2019)](http://ecosheds.org/models/brook-trout-occupancy/v1.1.0/)**  
 Add observation data from MA DFW. Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
 - **[v1.0.0 (Oct 25, 2018)](http://ecosheds.org/models/brook-trout-occupancy/v1.0.0/)**  

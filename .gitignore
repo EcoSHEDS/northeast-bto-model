@@ -6,3 +6,5 @@
 config.sh
 
 r/docs/_book
+
+r/csv/*.csv
