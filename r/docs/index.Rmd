@@ -1,7 +1,7 @@
 --- 
 title: "SHEDS Brook Trout Occupancy Model"
 author: "[Jeff Walker](https://walkerenvres.com), [Ben Letcher](https://www.lsc.usgs.gov/?q=cafb-ben-letcher), and [Dan Hocking](https://hockinglab.weebly.com/)"
-date: "v1.1.1 (Mar 26, 2019)"
+date: "v1.2.0 (Dec 3, 2019)"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -110,7 +110,9 @@ The source code for the model itself and this documentation is available in the 
 
 ## Change Log {#change-log}
 
-- **[v1.1.1 (Mar 26, 2019)](http://ecosheds.org/models/stream-temperature/v1.1.1/)**  
+- **[v1.2.0 (Dec 3, 2019)](http://ecosheds.org/models/brook-trout-occupancy/v1.2.0/)**  
+Re-run calibration with updated stream temperature model results ([v1.1](http://ecosheds.org/models/stream-temperature/v1.1/))
+- **[v1.1.1 (Mar 26, 2019)](http://ecosheds.org/models/brook-trout-occupancy/v1.1.1/)**  
 Update documentation, add [Download] section containing links to model predictions, catchment delineation, and covariates.
 - **[v1.1.0 (Mar 25, 2019)](http://ecosheds.org/models/brook-trout-occupancy/v1.1.0/)**  
 Add observation data from MA DFW. Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
