@@ -29,13 +29,13 @@ cat("loading stream temperature model results (version ", config$stm$version, ")
 df <- tbl(db, "temp_model") %>%
   select(featureid, version, variable, value) %>%
   filter(
-    version == config$stm$version,
-    variable %in% c("mean_jul_temp", "mean_summer_temp", "n_day_temp_gt_18")
+    version == !!config$stm$version,
+    variable %in% c("mean_jul_temp", "mean_jul_temp_air2", "mean_jul_temp_air4", "mean_jul_temp_air6", "mean_summer_temp", "n_day_temp_gt_18")
   ) %>%
   collect() %>%
   select(-version) %>%
   spread(variable, value) %>%
-  select(featureid, mean_jul_temp, mean_summer_temp, n_day_temp_gt_18)
+  select(featureid, everything())
 cat("done\n")
 
 stopifnot(sum(duplicated(df$featureid)) == 0)

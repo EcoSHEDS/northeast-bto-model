@@ -25,9 +25,14 @@ cat("dataset structure:\n")
 str(df)
 cat("\n")
 
+cat("rounding values...")
+df_round <- df %>%
+  mutate_at(vars(-featureid), signif, digits = 3)
+cat("\n")
+
 fname <- paste0("sheds-bto-model-v", config$version, ".csv")
 cat("saving to csv/", fname, "...", sep = "")
-write_csv(df, file.path("csv", fname), na = "")
+write_csv(df_round, file.path("csv", fname), na = "")
 cat("done\n")
 
 # done --------------------------------------------------------------------

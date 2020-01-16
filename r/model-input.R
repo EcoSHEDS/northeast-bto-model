@@ -26,7 +26,8 @@ df_huc <- readRDS(file.path(config$wd, "data-huc.rds")) %>%
 df_covariates <- readRDS(file.path(config$wd, "data-covariates.rds")) %>%
   filter(featureid %in% df_obs$featureid)
 df_temp <- readRDS(file.path(config$wd, "data-temp.rds")) %>%
-  filter(featureid %in% df_obs$featureid)
+  filter(featureid %in% df_obs$featureid) %>%
+  select(featureid, mean_jul_temp, mean_summer_temp, n_day_temp_gt_18)
 cat("done\n")
 
 # merge -------------------------------------------------------------------
