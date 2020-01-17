@@ -87,6 +87,11 @@ df <- df %>%
   ) %>%
   select(air, everything())
 
+df_base <- df %>%
+  filter(air == 0) %>%
+  select(-air)
+df_air <- df %>%
+  filter(air > 0)
 
 # standardize -------------------------------------------------------------
 
@@ -114,34 +119,44 @@ cat("done\n")
 # }
 #
 
-# predict: temp7pN ----------------------------------------------------
+# predict: current --------------------------------------------------------
+
+cat("calculating predictions for current conditions...")
+df_current <- df_base %>%
+  gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
+  left_join(df_var_std, by = "var") %>%
+  mutate(
+    value = (value - mean) / sd
+  ) %>%
+  select(-mean, -sd) %>%
+  spread(var, value)
+df_current$prob <- inv.logit(predict(glmm, df_current, allow.new.levels = TRUE))
+df_current <- df_current %>%
+  select(featureid, prob) %>%
+  mutate(scenario = "current")
+cat("done\n")
+
+# predict: temp7 ------------------------------------------------------
 # increase mean_jul_temp by N degC
 
-cat("calculating predictions for temp7p scenarios\n")
-temp7p_values <- seq(0, 6, by = 1)
+cat("calculating predictions for temp7 scenarios\n")
+temp7_values <- seq(1, 6, by = 1)
 
-# base scenario (hindcast)
-df_air0 <- df %>%
-  filter(air == 0) %>%
-  select(-air)
+df_temp7 <- lapply(seq_along(temp7_values), function (i) {
+  temp7_value <- temp7_values[i]
+  cat("computing temp7 scenario: ", temp7_value, " degC\n", sep = "")
 
-df_temp7p <- lapply(seq_along(temp7p_values), function (i) {
-  temp7p_value <- temp7p_values[i]
-  cat("computing temp7p scenario: ", temp7p_value, " degC\n", sep = "")
-
-  df_temp_scenario <- df_air0 %>%
+  df_temp_scenario <- df_base %>%
     mutate(
-      mean_jul_temp = mean_jul_temp + temp7p_value
+      mean_jul_temp = mean_jul_temp + temp7_value
     )
 
-  df_temp_scenario_z_long <- df_temp_scenario %>%
+  df_temp_scenario_z <- df_temp_scenario %>%
     gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
     left_join(df_var_std, by = "var") %>%
     mutate(
       value = (value - mean) / sd
-    )
-
-  df_temp_scenario_z <- df_temp_scenario_z_long %>%
+    ) %>%
     select(-mean, -sd) %>%
     spread(var, value)
 
@@ -150,36 +165,25 @@ df_temp7p <- lapply(seq_along(temp7p_values), function (i) {
     prob = inv.logit(predict(glmm, df_temp_scenario_z, allow.new.levels = TRUE))
   ) %>%
     mutate(
-      temp7p_value = temp7p_value
+      temp7 = temp7_value
     )
 }) %>%
   bind_rows() %>%
   mutate(
-    scenario = paste0("temp7p", sprintf("%02d", temp7p_value * 10))
+    scenario = paste0("temp7_", temp7)
   )
 
 
-# table(df_temp7p$scenario)
-# df_temp7p %>%
+# table(df_temp7$scenario)
+# df_temp7 %>%
 #   ggplot(aes(prob)) +
-#   geom_histogram() +
+#   geom_histogram(bins = 30) +
 #   facet_wrap(~ scenario)
-
-
-# predict: current --------------------------------------------------------
-
-cat("extracting predictions for current conditions...")
-df_current <- df_temp7p %>%
-  filter(temp7p_value == 0) %>%
-  select(-temp7p_value) %>%
-  mutate(scenario = "current")
-cat("done\n")
-
 
 # predict: air temp -------------------------------------------------------
 
 cat("computing predictions for air temperature scenarios...")
-df_air <- df %>%
+df_air <- df_air %>%
   gather(var, value, -air, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
   left_join(df_var_std, by = "var") %>%
   mutate(
@@ -189,33 +193,31 @@ df_air <- df %>%
   spread(var, value)
 df_air$prob <- inv.logit(predict(glmm, df_air, allow.new.levels = TRUE))
 df_air <- df_air %>%
-  mutate(scenario = paste0("air7p", sprintf("%02d", air * 10))) %>%
-  select(scenario, featureid, prob)
+  select(featureid, prob, air) %>%
+  mutate(scenario = paste0("air_", air))
 cat("done\n")
 
-# df_current %>%
-#   select(featureid, prob1 = prob) %>%
-#   left_join(
-#     df_air %>%
-#       filter(scenario == "air7p00") %>%
-#       select(featureid, prob2 = prob),
-#     by = "featureid"
-#   ) %>%
-#   filter(prob1 != prob2)
+# table(df_air$scenario)
+# df_air %>%
+#   ggplot(aes(prob)) +
+#   geom_histogram(bins = 30) +
+#   facet_wrap(~ scenario)
 
-# predict: max_temp7p_occN ------------------------------------------------
+# predict: max_temp7_occN -------------------------------------------------
 # maximum mean July temperature increase corresponding with occupancy prob >= N
 
 cat("calculating predictions for max_temp7_occN scenarios...")
-max_temp7_probs <- c(0.3, 0.5, 0.7)
-
-df_max_temp7 <- df_temp7p %>%
-  arrange(featureid, temp7p_value) %>%
+df_max_temp7 <- bind_rows(
+    df_current %>%
+      mutate(temp7 = 0),
+    df_temp7
+  ) %>%
+  arrange(featureid, temp7) %>%
   group_by(featureid) %>%
   summarise(
-    max_temp7_occ30 = approx(prob, temp7p_value, xout = 0.3, yleft = 6, yright = 0)$y,
-    max_temp7_occ50 = approx(prob, temp7p_value, xout = 0.5, yleft = 6, yright = 0)$y,
-    max_temp7_occ70 = approx(prob, temp7p_value, xout = 0.7, yleft = 6, yright = 0)$y
+    max_temp7_occ30 = approx(prob, temp7, xout = 0.3, yleft = 6, yright = 0)$y,
+    max_temp7_occ50 = approx(prob, temp7, xout = 0.5, yleft = 6, yright = 0)$y,
+    max_temp7_occ70 = approx(prob, temp7, xout = 0.7, yleft = 6, yright = 0)$y
   )
 cat("done\n")
 
@@ -229,8 +231,12 @@ cat("done\n")
 # maximum air temperature increase corresponding with occupancy prob >= N
 
 cat("calculating predictions for max_air_occN scenarios...")
-df_max_air <- df_air %>%
-  mutate(air = as.numeric(str_sub(scenario, 6, 7)) / 10) %>%
+df_max_air <- bind_rows(
+  df_current %>%
+    mutate(air = 0),
+  df_air
+) %>%
+  arrange(featureid, air) %>%
   group_by(featureid) %>%
   summarise(
     max_air_occ30 = approx(prob, air, xout = 0.3, yleft = 6, yright = 0)$y,
@@ -239,10 +245,10 @@ df_max_air <- df_air %>%
   )
 cat("done\n")
 
-# df_max_airp %>%
+# df_max_air %>%
 #   gather(var, value, -featureid) %>%
 #   ggplot(aes(value)) +
-#   geom_histogram(nbin = 30) +
+#   geom_histogram(bins = 30) +
 #   facet_wrap(~ var)
 
 # merge -------------------------------------------------------------------
@@ -250,13 +256,12 @@ cat("done\n")
 cat("merging prediction scenarios...")
 df <- df_current %>%
   bind_rows(
-    df_temp7p %>%
-      filter(temp7p_value > 0) %>%
-      select(-temp7p_value)
+    df_temp7 %>%
+      select(-temp7)
   ) %>%
   bind_rows(
     df_air %>%
-      filter(scenario != "air7p00")
+      select(-air)
   ) %>%
   mutate(scenario = paste0("occ_", scenario)) %>%
   spread(scenario, prob) %>%
