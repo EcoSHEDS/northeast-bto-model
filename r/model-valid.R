@@ -12,7 +12,6 @@ suppressPackageStartupMessages(library(boot))
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
 suppressPackageStartupMessages(library(lubridate))
-suppressPackageStartupMessages(library(lme4))
 
 source("functions.R")
 
