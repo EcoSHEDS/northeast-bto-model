@@ -30,9 +30,15 @@ df_round <- df %>%
   mutate_at(vars(-featureid), signif, digits = 3)
 cat("\n")
 
+if (!dir.exists(file.path(config$wd, "csv"))) {
+  cat("creating csv directory...")
+  dir.create(file.path(config$wd, "csv"))
+  cat("done\n")
+}
+
 fname <- paste0("sheds-bto-model-v", config$version, ".csv")
 cat("saving to csv/", fname, "...", sep = "")
-write_csv(df_round, file.path("csv", fname), na = "")
+write_csv(df_round, file.path(config$wd, "csv", fname), na = "")
 cat("done\n")
 
 # done --------------------------------------------------------------------
