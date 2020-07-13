@@ -1,0 +1,12 @@
+suppressPackageStartupMessages(library(AUC))
+suppressPackageStartupMessages(library(lme4))
+suppressPackageStartupMessages(library(boot))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(jsonlite))
+suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(RPostgreSQL))
+
+cat("----------------------------------------\n")
+cat("SESSION INFO ---------------------------\n")
+cat("----------------------------------------\n")
+sessionInfo()
