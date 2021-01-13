@@ -23,7 +23,7 @@ df_wide <- readRDS(file.path(config$wd, "model-predict.rds"))
 df <- df_wide %>%
   select(-huc12) %>%
   gather(variable, value, -featureid) %>%
-  mutate(version = config$version)
+  mutate(version = config$version$bto)
 cat("done\n")
 
 # save --------------------------------------------------------------------

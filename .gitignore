@@ -4,8 +4,9 @@
 .Ruserdata
 
 config.sh
+config.yml
 
-r/docs/_book
-r/docs/_bookdown_files/
+docs/_book
+docs/_bookdown_files/
 
-r/csv/*.csv
+csv/*.csv

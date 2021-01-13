@@ -36,7 +36,7 @@ if (!dir.exists(file.path(config$wd, "csv"))) {
   cat("done\n")
 }
 
-fname <- paste0("sheds-bto-model-v", config$version, ".csv")
+fname <- paste0("sheds-bto-model-v", config$version$bto, ".csv")
 cat("saving to csv/", fname, "...", sep = "")
 write_csv(df_round, file.path(config$wd, "csv", fname), na = "")
 cat("done\n")

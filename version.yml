@@ -1,0 +1,3 @@
+default:
+  bto: 2.0.0-dev
+  tempmodel: 1.2.0

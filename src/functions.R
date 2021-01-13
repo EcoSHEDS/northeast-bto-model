@@ -1,28 +1,24 @@
-load_config <- function(path = "../") {
-  # path: path to root of repo (where config.sh and version.sh are located)
-  readRenviron(file.path(path, "config.sh"))
-  readRenviron(file.path(path, "version.sh"))
+load_config <- function() {
+  config <- config::get()
+  config$version <- config::get(file = "version.yml")
+  config$wd <- file.path(config$root, config$version$bto)
 
-  wd <- file.path(Sys.getenv("SHEDS_BTO_ROOT"), Sys.getenv("SHEDS_BTO_VERSION"))
-
-  if (!file.exists(wd)) {
-    stop(paste0("ERROR: could not find working directory (", wd, ")"))
+  if(!dir.exists(config$wd)) {
+    stop(glue::glue("Working directory for this model version ({config$version$bto}) does not exist, please create it within the root directory ({config$root})"))
   }
 
-  list(
-    version = Sys.getenv("SHEDS_BTO_VERSION"),
-    root = Sys.getenv("SHEDS_BTO_ROOT"),
-    wd = wd,
-    db = list(
-      dbname = Sys.getenv("SHEDS_BTO_DB_DBNAME"),
-      host = Sys.getenv("SHEDS_BTO_DB_HOST"),
-      password = Sys.getenv("SHEDS_BTO_DB_PASSWORD"),
-      port = Sys.getenv("SHEDS_BTO_DB_PORT"),
-      user = Sys.getenv("SHEDS_BTO_DB_USER")
-    ),
-    stm = list(
-      version = Sys.getenv("SHEDS_BTO_STM_VERSION")
-    )
+  config
+}
+
+db_connect <- function() {
+  config <- load_config()
+  DBI::dbConnect(
+    RPostgreSQL::PostgreSQL(),
+    dbname = config$db$dbname,
+    host = config$db$host,
+    port = config$db$port,
+    user = config$db$user,
+    password = config$db$password
   )
 }
 

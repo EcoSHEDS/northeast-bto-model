@@ -519,7 +519,8 @@ vif.lme <- function (fit) {
   d <- diag(v)^0.5
   v <- diag(solve(v/(d %o% d)))
   names(v) <- nam
-  v }
+  v
+}
 
 vif.lme(glmm.M32)
 
