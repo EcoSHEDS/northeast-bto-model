@@ -10,15 +10,8 @@ source("src/functions.R")
 
 config <- load_config()
 
-
-# load: gis ---------------------------------------------------------------
-
-con <- db_connect()
-
-sf_catchment_points <- st_read(con, query = "select featureid, geom_pour as geom from truncated_flowlines;")
-
-DBI::dbDisconnect(con)
-
+gis <- read_rds(file.path(config$wd, "gis.rds"))
+huc <- read_rds(file.path(config$wd, "data-huc.rds"))
 
 # load: regional ----------------------------------------------------------
 
@@ -33,15 +26,74 @@ df_regional <- read_csv("data/obs/regional_occupancy_data.csv", col_types = cols
   select(featureid, presence) %>%
   filter(!is.na(presence))
 
-tabyl(df_regional, presence)
-
-sf_regional_points <- sf_catchment_points %>%
+sf_catch_regional <- gis$catchments %>%
   inner_join(df_regional, by = "featureid")
 
-sf_regional_points %>%
+sf_catch_regional %>%
   ggplot() +
-  geom_sf(aes(color = factor(presence))) +
-  facet_wrap(vars(presence))
+  geom_sf(aes(color = factor(presence)), alpha = 0.5, size = 0.5) +
+  geom_sf(data = gis$states, fill = NA) +
+  scale_color_manual("Presence\n/Absence", values = c("0" = "orangered", "1" = "deepskyblue")) +
+  guides(
+    color = guide_legend(override.aes = list(alpha = 1, size = 1))
+  )
+
+mapview::mapview(sf_catch_regional, zcol = "presence", cex = 6, col.regions = c("orangered", "deepskyblue"))
+
+df_regional_states <- sf_catch_regional %>%
+  st_intersection(gis$states) %>%
+  as_tibble() %>%
+  select(-geom)
+
+df_regional_states %>%
+  ggplot(aes(ordered(state_abbr, levels = c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")))) +
+  geom_bar(aes(fill = factor(presence))) +
+  scale_fill_manual("Presence/\nAbsence", values = c("0" = "orangered", "1" = "deepskyblue")) +
+  labs(x = "State", y = "# Catchments", title = "Presence/Absence Summary by State")
+
+df_regional_states %>%
+  ggplot(aes(ordered(state_abbr, levels = c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")))) +
+  geom_bar(aes(fill = factor(presence)), position = "fill") +
+  scale_fill_manual("Presence/\nAbsence", values = c("0" = "orangered", "1" = "deepskyblue")) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "State", y = "% Catchments", title = "Presence/Absence Summary by State (%)")
+
+# by huc
+gis$huc10 %>%
+  left_join(
+    df_regional %>%
+      left_join(select(huc, featureid, huc10), by = "featureid") %>%
+      group_by(huc10) %>%
+      summarise(
+        n = n(),
+        presence = mean(presence),
+        .groups = "drop"
+      ),
+    by = c("HUC10" = "huc10")
+  ) %>%
+  ggplot() +
+  geom_sf(aes(color = n), size = 1.5) +
+  geom_sf(data = gis$states, fill = NA) +
+  scale_color_viridis_c() +
+  labs(title = "# Catchments Observed per HUC10")
+
+gis$huc10 %>%
+  left_join(
+    df_regional %>%
+      left_join(select(huc, featureid, huc10), by = "featureid") %>%
+      group_by(huc10) %>%
+      summarise(
+        n = n(),
+        presence = mean(presence),
+        .groups = "drop"
+      ),
+    by = c("HUC10" = "huc10")
+  ) %>%
+  ggplot() +
+  geom_sf(aes(color = presence), size = 1.5) +
+  geom_sf(data = gis$states, fill = NA) +
+  scale_color_viridis_c() +
+  labs(title = "Mean Presence per HUC10")
 
 
 # load: madfw -------------------------------------------------------------
@@ -60,13 +112,17 @@ df_madfw <- read_csv("data/obs/madfw-ebt.csv", col_types = cols(
 
 tabyl(df_madfw, presence)
 
-sf_madfw_points <- sf_catchment_points %>%
+sf_madfw_points <- gis$catchments %>%
   inner_join(df_madfw, by = "featureid")
 
 sf_madfw_points %>%
   ggplot() +
-  geom_sf(aes(color = factor(presence))) +
-  facet_wrap(vars(presence))
+  geom_sf(aes(color = factor(presence)), alpha = 1, size = 1) +
+  geom_sf(data = filter(gis$states, state_abbr == "MA"), fill = NA) +
+  scale_color_manual("Presence\n/Absence", values = c("0" = "orangered", "1" = "deepskyblue")) +
+  guides(
+    color = guide_legend(override.aes = list(alpha = 1, size = 1))
+  )
 
 
 # merge -------------------------------------------------------------------

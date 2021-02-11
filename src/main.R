@@ -1,14 +1,17 @@
 config <- config::get()
 
+# fetch huc/catchment lookup table
+source("src/data/huc.R")
+
+# fetch gis datasets
+source("src/data/gis.R")
+
 # process raw MA DFW dataset
 # only need to run once, results saved to data/obs/madfw-ebt.csv and tracked by git
 source("src/data/obs-madfw.R")
 
 # import observation (presence/absence) dataset
 source("src/data/obs.R")
-
-# fetch huc dataset
-source("src/data/huc.R")
 
 # fetch covariates dataset
 source("src/data/covariates.R")

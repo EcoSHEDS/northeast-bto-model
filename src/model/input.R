@@ -23,6 +23,7 @@ df_covariates <- readRDS(file.path(config$wd, "data-covariates.rds")) %>%
 df_temp <- readRDS(file.path(config$wd, "data-temp-model.rds")) %>%
   filter(featureid %in% df_obs$featureid) %>%
   select(featureid, mean_jul_temp, mean_summer_temp, n_day_temp_gt_18)
+gis <- read_rds(file.path(config$wd, "gis.rds"))
 
 
 # merge -------------------------------------------------------------------
@@ -36,39 +37,13 @@ df_merge <- df_obs %>%
 
 # filter ------------------------------------------------------------------
 
-message(glue("Removing featureids with drainage area > 200 km2 (n = {sum(df_merge$AreaSqKM > 200)})"))
-df_filter <- filter(df_merge, AreaSqKM <= 200)
-
-message(glue("Removing featureids with missing stream temperature predictions (n = {sum(is.na(df_filter$mean_jul_temp))})"))
-df_filter <- filter(df_filter, !is.na(mean_jul_temp))
-
-message(glue("Removing featureids with (mean # days/year > 18 degC) >= 300 (n = {sum(is.na(df_filter$mean_jul_temp))})"))
-# df_filter <- filter(df_filter, n_day_temp_gt_18 < 300)
+message(glue("Removing featureids with missing stream temperature predictions (n = {sum(is.na(df_merge$mean_jul_temp))})"))
+df_filter <- filter(df_merge, !is.na(mean_jul_temp))
 
 stopifnot(all(!is.na(df_filter)))
 
 df_filter <- df_filter %>%
   gather(var, value, -featureid, -presence, -huc12, -huc4, -huc8, -huc10)
-
-
-# standardize -------------------------------------------------------------
-
-df_var_std <- df_filter %>%
-  group_by(var) %>%
-  summarize(
-    mean = mean(value),
-    sd = sd(value),
-    .groups = "drop"
-  )
-
-df_std <- df_long %>%
-  group_by(var) %>%
-  mutate(
-    value = (value - mean(value)) / sd(value)
-  ) %>%
-  spread(var, value) %>%
-  arrange(huc12, featureid)
-
 
 # split -------------------------------------------------------------------
 
@@ -81,38 +56,122 @@ set.seed(24744)
 calib_huc10 <- sample(unique(df_std$huc10), n_calib_huc10, replace = FALSE)
 valid_huc10 <- setdiff(unique(df_std$huc10), calib_huc10)
 
-df_calib <- df %>%
-  filter(huc10 %in% calib_huc10)
-df_valid <- df %>%
-  filter(huc10 %in% valid_huc10)
+df <- df_filter %>%
+  spread(var, value) %>%
+  mutate(partition = if_else(huc10 %in% calib_huc10, "calib", "valid")) %>%
+  relocate(partition)
 
-df_std_calib <- df_std %>%
-  filter(huc10 %in% calib_huc10)
-df_std_valid <- df_std %>%
-  filter(huc10 %in% valid_huc10)
+message(glue("split dataset into calibration (n={sum(df$partition == 'calib')}) and validation (n={sum(df$partition == 'valid')})"))
 
-message(glue("split dataset into calibration (n={nrow(df_std_calib)}) and validation (n={nrow(df_std_valid)})"))
+
+# standardize -------------------------------------------------------------
+
+df_var_std <- df %>%
+  pivot_longer(-c(partition, featureid, presence, huc4, huc8, huc10, huc12)) %>%
+  group_by(name) %>%
+  summarize(
+    mean = mean(value),
+    sd = sd(value),
+    .groups = "drop"
+  )
+
+df_std <- df %>%
+  pivot_longer(-c(partition, featureid, presence, huc4, huc8, huc10, huc12)) %>%
+  group_by(name) %>%
+  mutate(
+    value = (value - mean(value)) / sd(value)
+  ) %>%
+  spread(name, value) %>%
+  arrange(partition, huc12, featureid)
+
+# summary -----------------------------------------------------------------
+
+covariates <- c(
+  "AreaSqKM",
+  "agriculture",
+  "devel_hi",
+  "forest",
+  "allonnet",
+  "summer_prcp_mm",
+  "mean_jul_temp"
+)
+
+# calibration/validation
+gis$catchments %>%
+  inner_join(df, by = "featureid") %>%
+  ggplot() +
+  geom_sf(aes(color = partition)) +
+  geom_sf(data = gis$states, fill = NA, size = 1) +
+  scale_color_brewer("Parition", type = "qual", palette = 2)
+
+df %>%
+  select(partition, featureid, all_of(covariates)) %>%
+  pivot_longer(-c(partition, featureid)) %>%
+  ggplot(aes(value)) +
+  geom_histogram() +
+  facet_grid(vars(partition), vars(name), scales = "free") +
+  labs(x = NULL, y = "# Catchments")
+
+df_std %>%
+  select(partition, featureid, all_of(covariates)) %>%
+  pivot_longer(-c(partition, featureid)) %>%
+  ggplot(aes(value)) +
+  geom_histogram() +
+  facet_grid(vars(partition), vars(name), scales = "free") +
+  labs(x = NULL, y = "# Catchments")
+
+p <- map(c(covariates, "presence"), function (v) {
+  gis$catchments %>%
+    inner_join(df, by = "featureid") %>%
+    ggplot() +
+    geom_sf(aes_string(color = v), size = 0.5) +
+    geom_sf(data = gis$states, fill = NA, size = 0.5) +
+    scale_color_viridis_c() +
+    labs(title = v)
+})
+cowplot::plot_grid(plotlist = p, ncol = 3)
+
+df %>%
+  select(presence, all_of(covariates)) %>%
+  pivot_longer(-presence) %>%
+  ggplot(aes(value, presence)) +
+  geom_jitter(width = 0, height = 0.01, alpha = 0.1) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) +
+  facet_wrap(vars(name), scales = "free_x", strip.position = "bottom") +
+  labs(x = NULL, y = "prob(presence)") +
+  theme(strip.background = element_blank(), strip.placement = "outside", strip.text = element_text(size = 10))
+
+df %>%
+  select(presence, all_of(covariates)) %>%
+  pivot_longer(-presence) %>%
+  ggplot(aes(factor(presence), value)) +
+  geom_boxplot() +
+  stat_summary(fun = mean, color = "red") +
+  facet_wrap(vars(name), scales = "free_y", strip.position = "left") +
+  labs(x = "Presence/Absence", y = NULL) +
+  theme(strip.background = element_blank(), strip.placement = "outside", strip.text = element_text(size = 10))
+
+df %>%
+  select(all_of(covariates), presence) %>%
+  GGally::ggpairs(columns = covariates, mapping = aes(alpha = 0.5, color = factor(presence))) +
+  scale_fill_manual("Presence/\nAbsence", values = c("0" = "orangered", "1" = "deepskyblue"))
+
+df %>%
+  select(all_of(covariates)) %>%
+  GGally::ggpairs(mapping = aes(alpha = 0.25))
 
 
 # export ------------------------------------------------------------------
 
 list(
-  datasets = list(
+  inputs = list(
     obs = df_obs,
     covariates = df_covariates,
     huc = df_huc,
     temp = df_temp
   ),
-  calib = list(
-    huc10 = calib_huc10,
-    data = df_calib,
-    data_std = df_std_calib
-  ),
-  valid = list(
-    huc10 = valid_huc10,
-    data = df_valid,
-    data_std = df_std_valid
-  ),
+  data = df,
+  data_std = df_std,
   var_std = df_var_std
 ) %>%
   saveRDS(file.path(config$wd, "model-input.rds"))
