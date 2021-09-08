@@ -8,14 +8,14 @@ cat("starting export-csv:", as.character(start, tz = "US/Eastern"), "\n")
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
 
-source("functions.R")
+source("src/functions.R")
 
 config <- load_config()
 
 # load --------------------------------------------------------------------
 
 cat("loading predictions...")
-df <- readRDS(file.path(config$wd, "model-predict.rds")) %>%
+df <- read_rds(file.path(config$wd, "model-predict.rds")) %>%
   select(-huc12)
 cat("done\n")
 

@@ -69,4 +69,4 @@ DBI::dbDisconnect(con)
 
 # export ------------------------------------------------------------------
 
-saveRDS(df_covariates, file.path(config$wd, "data-covariates.rds"))
+write_rds(df_covariates, file.path(config$wd, "data-covariates.rds"))

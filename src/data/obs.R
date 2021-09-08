@@ -152,4 +152,4 @@ stopifnot(sum(duplicated(df$featureid)) == 0)
 
 # export ------------------------------------------------------------------
 
-saveRDS(df, file.path(config$wd, "data-obs.rds"))
+write_rds(df, file.path(config$wd, "data-obs.rds"))

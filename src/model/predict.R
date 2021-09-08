@@ -14,27 +14,27 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
 suppressPackageStartupMessages(library(lubridate))
 
-source("functions.R")
+source("src/functions.R")
 
 config <- load_config()
 
 # load --------------------------------------------------------------------
 
 cat("loading model-input...")
-inp <- readRDS(file.path(config$wd, "model-input.rds"))
+inp <- read_rds(file.path(config$wd, "model-input.rds"))
 cat("done\n")
 
 cat("loading model-calib...")
-calib <- readRDS(file.path(config$wd, "model-calib.rds"))
+calib <- read_rds(file.path(config$wd, "model-calib.rds"))
 cat("done\n")
 
 # fitted model
 glmm <- calib$model
 
 cat("loading huc, covariates, temp datasets...")
-df_huc <- readRDS(file.path(config$wd, "data-huc.rds"))
-df_covariates <- readRDS(file.path(config$wd, "data-covariates.rds"))
-df_temp <- readRDS(file.path(config$wd, "data-temp.rds"))
+df_huc <- read_rds(file.path(config$wd, "data-huc.rds"))
+df_covariates <- read_rds(file.path(config$wd, "data-covariates.rds"))
+df_temp <- read_rds(file.path(config$wd, "data-temp-model.rds"))
 cat("done\n")
 
 cat("merging datasets...")
@@ -121,56 +121,56 @@ cat("done\n")
 # predict: current --------------------------------------------------------
 
 cat("calculating predictions for current conditions...")
-df_current <- df_base %>%
-  gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
-  left_join(df_var_std, by = "var") %>%
+df_current_std <- df_base %>%
+  pivot_longer(-c(featureid, starts_with("huc"))) %>%
+  left_join(df_var_std, by = "name") %>%
   mutate(
     value = (value - mean) / sd
   ) %>%
   select(-mean, -sd) %>%
-  spread(var, value)
-df_current$prob <- inv.logit(predict(glmm, df_current, allow.new.levels = TRUE))
-df_current <- df_current %>%
+  pivot_wider()
+df_current_std$prob <- inv.logit(predict(glmm, df_current_std, allow.new.levels = TRUE))
+df_current_pred <- df_current_std %>%
   select(featureid, prob) %>%
   mutate(scenario = "current")
 cat("done\n")
 
 # predict: temp7 ------------------------------------------------------
 # increase mean_jul_temp by N degC
-
-cat("calculating predictions for temp7 scenarios\n")
-temp7_values <- seq(1, 6, by = 1)
-
-df_temp7 <- lapply(seq_along(temp7_values), function (i) {
-  temp7_value <- temp7_values[i]
-  cat("computing temp7 scenario: ", temp7_value, " degC\n", sep = "")
-
-  df_temp_scenario <- df_base %>%
-    mutate(
-      mean_jul_temp = mean_jul_temp + temp7_value
-    )
-
-  df_temp_scenario_z <- df_temp_scenario %>%
-    gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
-    left_join(df_var_std, by = "var") %>%
-    mutate(
-      value = (value - mean) / sd
-    ) %>%
-    select(-mean, -sd) %>%
-    spread(var, value)
-
-  tibble(
-    featureid = df_temp_scenario_z$featureid,
-    prob = inv.logit(predict(glmm, df_temp_scenario_z, allow.new.levels = TRUE))
-  ) %>%
-    mutate(
-      temp7 = temp7_value
-    )
-}) %>%
-  bind_rows() %>%
-  mutate(
-    scenario = paste0("temp7_", temp7)
-  )
+#
+# cat("calculating predictions for temp7 scenarios\n")
+# temp7_values <- seq(1, 6, by = 1)
+#
+# df_temp7 <- lapply(seq_along(temp7_values), function (i) {
+#   temp7_value <- temp7_values[i]
+#   cat("computing temp7 scenario: ", temp7_value, " degC\n", sep = "")
+#
+#   df_temp_scenario <- df_base %>%
+#     mutate(
+#       mean_jul_temp = mean_jul_temp + temp7_value
+#     )
+#
+#   df_temp_scenario_z <- df_temp_scenario %>%
+#     gather(var, value, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
+#     left_join(df_var_std, by = "var") %>%
+#     mutate(
+#       value = (value - mean) / sd
+#     ) %>%
+#     select(-mean, -sd) %>%
+#     spread(var, value)
+#
+#   tibble(
+#     featureid = df_temp_scenario_z$featureid,
+#     prob = inv.logit(predict(glmm, df_temp_scenario_z, allow.new.levels = TRUE))
+#   ) %>%
+#     mutate(
+#       temp7 = temp7_value
+#     )
+# }) %>%
+#   bind_rows() %>%
+#   mutate(
+#     scenario = paste0("temp7_", temp7)
+#   )
 
 
 # table(df_temp7$scenario)
@@ -182,16 +182,16 @@ df_temp7 <- lapply(seq_along(temp7_values), function (i) {
 # predict: air temp -------------------------------------------------------
 
 cat("computing predictions for air temperature scenarios...")
-df_air <- df_air %>%
-  gather(var, value, -air, -featureid, -huc12, -huc4, -huc8, -huc10) %>%
-  left_join(df_var_std, by = "var") %>%
+df_air_std <- df_air %>%
+  pivot_longer(-c(air, featureid, starts_with("huc"))) %>%
+  left_join(df_var_std, by = "name") %>%
   mutate(
     value = (value - mean) / sd
   ) %>%
   select(-mean, -sd) %>%
-  spread(var, value)
-df_air$prob <- inv.logit(predict(glmm, df_air, allow.new.levels = TRUE))
-df_air <- df_air %>%
+  pivot_wider()
+df_air_std$prob <- inv.logit(predict(glmm, df_air_std, allow.new.levels = TRUE))
+df_air_pred <- df_air_std %>%
   select(featureid, prob, air) %>%
   mutate(scenario = paste0("air_", air))
 cat("done\n")
@@ -204,21 +204,21 @@ cat("done\n")
 
 # predict: max_temp7_occN -------------------------------------------------
 # maximum mean July temperature increase corresponding with occupancy prob >= N
-
-cat("calculating predictions for max_temp7_occN scenarios...")
-df_max_temp7 <- bind_rows(
-    df_current %>%
-      mutate(temp7 = 0),
-    df_temp7
-  ) %>%
-  arrange(featureid, temp7) %>%
-  group_by(featureid) %>%
-  summarise(
-    max_temp7_occ30 = approx(prob, temp7, xout = 0.3, yleft = 6, yright = 0)$y,
-    max_temp7_occ50 = approx(prob, temp7, xout = 0.5, yleft = 6, yright = 0)$y,
-    max_temp7_occ70 = approx(prob, temp7, xout = 0.7, yleft = 6, yright = 0)$y
-  )
-cat("done\n")
+#
+# cat("calculating predictions for max_temp7_occN scenarios...")
+# df_max_temp7 <- bind_rows(
+#     df_current %>%
+#       mutate(temp7 = 0),
+#     df_temp7
+#   ) %>%
+#   arrange(featureid, temp7) %>%
+#   group_by(featureid) %>%
+#   summarise(
+#     max_temp7_occ30 = approx(prob, temp7, xout = 0.3, yleft = 6, yright = 0)$y,
+#     max_temp7_occ50 = approx(prob, temp7, xout = 0.5, yleft = 6, yright = 0)$y,
+#     max_temp7_occ70 = approx(prob, temp7, xout = 0.7, yleft = 6, yright = 0)$y
+#   )
+# cat("done\n")
 
 # df_max_temp7 %>%
 #   gather(var, value, -featureid) %>%
@@ -231,9 +231,9 @@ cat("done\n")
 
 cat("calculating predictions for max_air_occN scenarios...")
 df_max_air <- bind_rows(
-  df_current %>%
+  df_current_pred %>%
     mutate(air = 0),
-  df_air
+  df_air_pred
 ) %>%
   arrange(featureid, air) %>%
   group_by(featureid) %>%
@@ -253,13 +253,13 @@ cat("done\n")
 # merge -------------------------------------------------------------------
 
 cat("merging prediction scenarios...")
-df <- df_current %>%
+df_pred <- df_current_pred %>%
+  # bind_rows(
+  #   df_temp7 %>%
+  #     select(-temp7)
+  # ) %>%
   bind_rows(
-    df_temp7 %>%
-      select(-temp7)
-  ) %>%
-  bind_rows(
-    df_air %>%
+    df_air_pred %>%
       select(-air)
   ) %>%
   mutate(scenario = paste0("occ_", scenario)) %>%
@@ -268,31 +268,31 @@ df <- df_current %>%
     df_max_air,
     by = "featureid"
   ) %>%
-  full_join(
-    df_max_temp7,
-    by = "featureid"
-  ) %>%
+  # full_join(
+  #   df_max_temp7,
+  #   by = "featureid"
+  # ) %>%
   select(featureid, occ_current, everything())
 
-df <- df_huc %>%
+df_pred <- df_huc %>%
   select(featureid, huc12) %>%
   left_join(
-    df,
+    df_pred,
     by = "featureid"
   )
 
-stopifnot(sum(duplicated(df$featureid)) == 0)
-cat("done (nrow = ", scales::comma(nrow(df)), ")\n", sep = "")
+stopifnot(sum(duplicated(df_pred$featureid)) == 0)
+cat("done (nrow = ", scales::comma(nrow(df_pred)), ")\n", sep = "")
 
 # export ------------------------------------------------------------------
 
 cat("saving to model-predict.rds...")
-df %>%
-  saveRDS(file.path(config$wd, "model-predict.rds"))
+df_pred %>%
+  write_rds(file.path(config$wd, "model-predict.rds"))
 cat("done\n")
 
 cat("saving to model-predict.csv...")
-df %>%
+df_pred %>%
   mutate(
     featureid = sprintf("%.0f", featureid)
   ) %>%

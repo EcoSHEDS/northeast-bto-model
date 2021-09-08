@@ -19,6 +19,7 @@ config <- load_config()
 # load --------------------------------------------------------------------
 
 gis <- read_rds(file.path(config$wd, "gis.rds"))
+
 inp <- read_rds(file.path(config$wd, "model-input.rds"))
 
 # calibration dataset with standardized covariates
@@ -40,22 +41,32 @@ df %>%
 # fit model ---------------------------------------------------------------
 
 glmm <- glmer(
-  presence ~ AreaSqKM * summer_prcp_mm +
-    mean_jul_temp +
-    forest +
-    allonnet +
-    devel_hi +
-    agriculture +
-    mean_jul_temp * forest +
-    summer_prcp_mm * forest +
-    (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
-  family = binomial(link = "logit"),
-  data = df,
-  control = glmerControl(optimizer = "bobyqa")
+  presence ~ mean_jul_temp +
+    (1 + mean_jul_temp | huc10),
+  # forest +
+  # allonnet +
+  # devel_hi +
+  # agriculture +
+  # AreaSqKM * summer_prcp_mm +
+  # mean_jul_temp * forest +
+  # summer_prcp_mm * forest +
+  # (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
+  family = binomial,
+  data = df
 )
 
-summary(glmm)
-
+# glmm0 <- glmer(
+#   presence ~ mean_jul_temp +
+#     forest +
+#     allonnet +
+#     devel_hi +
+#     agriculture +
+#     mean_jul_temp * forest +
+#     summer_prcp_mm * forest +
+#     (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
+#   family = binomial,
+#   data = df
+# )
 
 # diagnostics -------------------------------------------------------------
 
@@ -68,6 +79,8 @@ covariates <- c(
   "summer_prcp_mm",
   "mean_jul_temp"
 )
+
+summary(glmm)
 
 # fixed effects
 plot_model(glmm, show.values = TRUE, value.offset = 0.3)
@@ -117,9 +130,7 @@ gis$huc10 %>%
   scale_color_viridis_c() +
   facet_wrap(vars(name))
 
-
-# predictions -------------------------------------------------------------
-
+# predictions
 df_pred <- inp$data_std %>%
   mutate(
     pred = inv.logit(predict(glmm, inp$data_std, allow.new.levels = TRUE))
@@ -146,12 +157,12 @@ gis$catchments %>%
 df_gof <- df_pred %>%
   select(partition, featureid, pred, presence) %>%
   mutate(
-   result = case_when(
-     presence == 0 & pred < 0.5 ~ "TN",
-     presence == 0 & pred >= 0.5 ~ "FP",
-     presence == 1 & pred < 0.5 ~ "FN",
-     TRUE ~ "TP"
-   )
+    result = case_when(
+      presence == 0 & pred < 0.5 ~ "TN",
+      presence == 0 & pred >= 0.5 ~ "FP",
+      presence == 1 & pred < 0.5 ~ "FN",
+      TRUE ~ "TP"
+    )
   ) %>%
   nest(data = c(featureid, pred, presence, result)) %>%
   mutate(
@@ -266,6 +277,9 @@ gis$catchments %>%
     FN = "False Negative"
   )))
 
+
+
+
 sf_catch %>%
   inner_join(
     df %>%
@@ -325,7 +339,7 @@ sf_huc10 %>%
 as_tibble(ranef(glmm)$huc10, .rows = )
 glmm1 <- glmer(
   presence ~ mean_jul_temp +
-  (1 | huc10),
+    (1 | huc10),
   family = binomial(link = "logit"),
   data = df,
   control = glmerControl(optimizer = "bobyqa")
@@ -335,7 +349,6 @@ glmm1 <- glmer(
 df %>%
   ggplot(aes(mean_jul_temp, forest)) +
   geom_point()
-
 cor(df$mean_jul_temp, df$forest)
 
 plot(df$huc10, resid(glmm), xlab = "HUC 10 basin", ylab = "Residuals")

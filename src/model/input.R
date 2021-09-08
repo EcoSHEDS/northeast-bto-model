@@ -15,12 +15,12 @@ config <- load_config()
 
 # load datasets -----------------------------------------------------------
 
-df_obs <- readRDS(file.path(config$wd, "data-obs.rds"))
-df_huc <- readRDS(file.path(config$wd, "data-huc.rds")) %>%
+df_obs <- read_rds(file.path(config$wd, "data-obs.rds"))
+df_huc <- read_rds(file.path(config$wd, "data-huc.rds")) %>%
   filter(featureid %in% df_obs$featureid)
-df_covariates <- readRDS(file.path(config$wd, "data-covariates.rds")) %>%
+df_covariates <- read_rds(file.path(config$wd, "data-covariates.rds")) %>%
   filter(featureid %in% df_obs$featureid)
-df_temp <- readRDS(file.path(config$wd, "data-temp-model.rds")) %>%
+df_temp <- read_rds(file.path(config$wd, "data-temp-model.rds")) %>%
   filter(featureid %in% df_obs$featureid) %>%
   select(featureid, mean_jul_temp, mean_summer_temp, n_day_temp_gt_18)
 gis <- read_rds(file.path(config$wd, "gis.rds"))
@@ -50,11 +50,11 @@ df_filter <- df_filter %>%
 valid_frac <- 0.2
 calib_frac <- 1 - valid_frac
 
-n_calib_huc10 <- floor(length(unique(df_std$huc10)) * (1 - valid_frac))
+n_calib_huc10 <- floor(length(unique(df_filter$huc10)) * (1 - valid_frac))
 
 set.seed(24744)
-calib_huc10 <- sample(unique(df_std$huc10), n_calib_huc10, replace = FALSE)
-valid_huc10 <- setdiff(unique(df_std$huc10), calib_huc10)
+calib_huc10 <- sample(unique(df_filter$huc10), n_calib_huc10, replace = FALSE)
+valid_huc10 <- setdiff(unique(df_filter$huc10), calib_huc10)
 
 df <- df_filter %>%
   spread(var, value) %>%
@@ -174,4 +174,4 @@ list(
   data_std = df_std,
   var_std = df_var_std
 ) %>%
-  saveRDS(file.path(config$wd, "model-input.rds"))
+  write_rds(file.path(config$wd, "model-input.rds"))

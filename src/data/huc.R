@@ -32,4 +32,4 @@ df <- df_db %>%
 
 # export ------------------------------------------------------------------
 
-saveRDS(df, file.path(config$wd, "data-huc.rds"))
+write_rds(df, file.path(config$wd, "data-huc.rds"))

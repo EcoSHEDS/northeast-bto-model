@@ -45,4 +45,4 @@ DBI::dbDisconnect(con)
 
 # export ------------------------------------------------------------------
 
-saveRDS(df, file.path(config$wd, "data-temp-model.rds"))
+write_rds(df, file.path(config$wd, "data-temp-model.rds"))

@@ -10,7 +10,7 @@ cat("starting export-db:", as.character(start, tz = "US/Eastern"), "\n")
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
 
-source("functions.R")
+source("src/functions.R")
 
 config <- load_config()
 
@@ -18,7 +18,7 @@ config <- load_config()
 # load --------------------------------------------------------------------
 
 cat("loading predictions...")
-df_wide <- readRDS(file.path(config$wd, "model-predict.rds"))
+df_wide <- read_rds(file.path(config$wd, "model-predict.rds"))
 
 df <- df_wide %>%
   select(-huc12) %>%
@@ -29,11 +29,23 @@ cat("done\n")
 # save --------------------------------------------------------------------
 
 cat("connecting to db (host = ", config$db$host, ", dbname = ", config$db$dbname, ")...", sep = "")
-db <- src_postgres(host = config$db$host, dbname = config$db$dbname, user = config$db$user)
+# db <- src_postgres(
+#   host = config$db$host,
+#   port = config$db$port,
+#   dbname = config$db$dbname,
+#   user = config$db$user
+# )
+con <- DBI::dbConnect(
+  RPostgreSQL::PostgreSQL(),
+  host = config$db$host,
+  port = config$db$port,
+  dbname = config$db$dbname,
+  user = config$db$user
+)
 cat("done\n")
 
 cat("saving to database...")
-done <- db_insert_into(db$con, "bto_model", df)
+done <- DBI::dbWriteTable(con, "bto_model", df, append = TRUE)
 cat("done\n")
 
 # done --------------------------------------------------------------------

@@ -13,25 +13,26 @@ suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(jsonlite))
 suppressPackageStartupMessages(library(lubridate))
 
-source("functions.R")
+source("src/functions.R")
 
 config <- load_config()
 
 # load --------------------------------------------------------------------
 
 cat("loading model-input...")
-inp <- readRDS(file.path(config$wd, "model-input.rds"))
+inp <- read_rds(file.path(config$wd, "model-input.rds"))
 cat("done\n")
 
 cat("loading model-calib...")
-calib <- readRDS(file.path(config$wd, "model-calib.rds"))
+calib <- read_rds(file.path(config$wd, "model-calib.rds"))
 cat("done\n")
 
 # fitted model
 glmm <- calib$model
 
 # validation dataset with standardized covariates
-df <- inp$valid$data_std
+df <- inp$data_std %>%
+  filter(partition == "valid")
 
 # calculate ---------------------------------------------------------------
 
@@ -60,7 +61,7 @@ list(
   data = df,
   pred = pred
 ) %>%
-  saveRDS(file.path(config$wd, "model-valid.rds"))
+  write_rds(file.path(config$wd, "model-valid.rds"))
 
 # end ---------------------------------------------------------------------
 

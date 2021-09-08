@@ -38,10 +38,10 @@ model_pred <- function(m, df) {
 
   pred_stats <- list(
     n = length(y_obs),
-    sens = auc(sensitivity(y_pred, as.factor(y_obs))),
-    spec = auc(specificity(y_pred, as.factor(y_obs))),
-    acc = auc(accuracy(y_pred, as.factor(y_obs))),
-    auc = auc(roc(y_pred, as.factor(y_obs))),
+    sens = auc(AUC::sensitivity(y_pred, as.factor(y_obs))),
+    spec = auc(AUC::specificity(y_pred, as.factor(y_obs))),
+    acc = auc(AUC::accuracy(y_pred, as.factor(y_obs))),
+    auc = auc(AUC::roc(y_pred, as.factor(y_obs))),
     err = mean((y_pred > 0.5 & y_obs == 0) | (y_pred <= 0.5 & y_obs == 1)),
     fpr = mean(y_pred > 0.5 & y_obs == 0),
     fnr = mean(y_pred <= 0.5 & y_obs == 1)
@@ -56,10 +56,10 @@ model_pred <- function(m, df) {
 }
 
 plot_auc <- function(y_pred, y_obs) {
-  x_sens <- sensitivity(y_pred, as.factor(y_obs))
-  x_spec <- specificity(y_pred, as.factor(y_obs))
-  x_acc <- accuracy(y_pred, as.factor(y_obs))
-  x_roc <- roc(y_pred, as.factor(y_obs))
+  x_sens <- AUC::sensitivity(y_pred, as.factor(y_obs))
+  x_spec <- AUC::specificity(y_pred, as.factor(y_obs))
+  x_acc <- AUC::accuracy(y_pred, as.factor(y_obs))
+  x_roc <- AUC::roc(y_pred, as.factor(y_obs))
 
   p_sens <- tibble(
     cutoff = x_sens$cutoffs,
