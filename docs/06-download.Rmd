@@ -2,8 +2,8 @@
 
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
-source("../functions.R")
-config <- load_config("../../")
+source("../src/functions.R")
+config <- load_config("../")
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
 ```
 
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = 
 
 The brook trout occupancy model predictions can be downloaded as a static CSV file from the following link.
 
-> **[Brook Trout Occupancy Predictions v`r config$version` (csv)](http://ecosheds.org/models/brook-trout-occupancy/output/sheds-bto-model-v`r config$version`.csv)**
+> **[Brook Trout Occupancy Predictions v`r config$version$bto` (csv)](http://ecosheds.org/models/brook-trout-occupancy/output/sheds-bto-model-v`r config$version$bto`.csv)**
 
 This file contains the following headers:
 
@@ -23,18 +23,9 @@ df_columns <- tribble(
   "occ_air_2","Occupancy Probability (Air Temp +2.0 degC)",
   "occ_air_4","Occupancy Probability (Air Temp +4.0 degC)",
   "occ_air_6","Occupancy Probability (Air Temp +6.0 degC)",
-  "occ_temp7_1","Occupancy Probability (July Stream Temp +1.0 degC)",
-  "occ_temp7_2","Occupancy Probability (July Stream Temp +2.0 degC)",
-  "occ_temp7_3","Occupancy Probability (July Stream Temp +3.0 degC)",
-  "occ_temp7_4","Occupancy Probability (July Stream Temp +4.0 degC)",
-  "occ_temp7_5","Occupancy Probability (July Stream Temp +5.0 degC)",
-  "occ_temp7_6","Occupancy Probability (July Stream Temp +6.0 degC)",
   "max_air_occ30","Max Air Temp Increase (degC) for 30% Occupancy Probability",
   "max_air_occ50","Max Air Temp Increase (degC) for 50% Occupancy Probability",
-  "max_air_occ70","Max Air Temp Increase (degC) for 70% Occupancy Probability",
-  "max_temp7_occ30","Max July Stream Temp Increase (degC) for 30% Occupancy Probability",
-  "max_temp7_occ50","Max July Stream Temp Increase (degC) for 50% Occupancy Probability",
-  "max_temp7_occ70","Max July Stream Temp Increase (degC) for 70% Occupancy Probability"
+  "max_air_occ70","Max Air Temp Increase (degC) for 70% Occupancy Probability"
 )
 knitr::kable(df_columns, col.names = c("CSV Column", "Description"), align = "rl")
 ```

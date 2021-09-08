@@ -1,7 +1,7 @@
 --- 
-title: "SHEDS Brook Trout Occupancy Model"
+title: "SHEDS Northeast Brook Trout Occupancy Model"
 author: "[Jeff Walker](https://walkerenvres.com), [Ben Letcher](https://www.lsc.usgs.gov/?q=cafb-ben-letcher), and [Dan Hocking](https://hockinglab.weebly.com/)"
-date: "v1.3.0 (Jul 13, 2020)"
+date: "v1.4.0 (Sep 8, 2021)"
 site: bookdown::bookdown_site
 output: bookdown::gitbook
 documentclass: book
@@ -9,7 +9,7 @@ bibliography: [book.bib]
 biblio-style: apalike
 link-citations: yes
 github-repo: walkerjeffd/sheds-bto-model
-description: "Documentation for the SHEDS brook trout occupancy model."
+description: "Documentation for the SHEDS northeast brook trout occupancy model."
 editor_options: 
   chunk_output_type: console
 ---
@@ -19,9 +19,9 @@ library(AUC)
 library(boot)
 library(tidyverse)
 library(gridExtra)
-source("../functions.R")
+source("../src/functions.R")
 
-config <- load_config("../../")
+config <- load_config("../")
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
 
 theme_set(theme_bw())
@@ -50,7 +50,7 @@ The model will be periodically updated and re-calibrated (approximately once eve
 
 ## Current Snapshot
 
-Table \@ref(tab:table-intro-gof) provides a snapshot of the calibration and validation performance for the current version of the model (v`r config$version`). More details about the model performance can be found in the [Calibration and Validation] section.
+Table \@ref(tab:table-intro-gof) provides a snapshot of the calibration and validation performance for the current version of the model (v`r config$version$bto`). More details about the model performance can be found in the [Calibration and Validation] section.
 
 ```{r table-intro-gof}
 
@@ -110,6 +110,8 @@ The source code for the model itself and this documentation is available in the 
 
 ## Change Log {#change-log}
 
+- **[v1.4.0 (Sep 8, 2021)](http://ecosheds.org/models/brook-trout-occupancy/v1.4.0/)**  
+Re-calibrate model with updated stream temperature model results through 2020 ([v1.3.0](http://ecosheds.org/models/stream-temperature/v1.3.0/)), removed July stream temperature scenarios from predictions (these have been replaced by the air temperature scenarios)
 - **[v1.3.0 (Jul 13, 2020)](http://ecosheds.org/models/brook-trout-occupancy/v1.3.0/)**  
 Re-run calibration with updated stream temperature model results through 2019 ([v1.2.0](http://ecosheds.org/models/stream-temperature/v1.2.0/))
 - **[v1.2.2 (Jan 17, 2020)](http://ecosheds.org/models/brook-trout-occupancy/v1.2.2/)**  

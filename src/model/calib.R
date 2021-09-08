@@ -379,3 +379,112 @@ list(
   pred = pred
 ) %>%
   write_rds(file.path(config$wd, "model-calib.rds"))
+
+
+# compare -----------------------------------------------------------------
+#
+# inp_old <- read_rds(file.path("/Users/jeff/Projects/sheds/data/bto-model//1.3.0", "model-input.rds"))
+# calib_old <- read_rds(file.path("/Users/jeff/Projects/sheds/data/bto-model//1.3.0", "model-calib.rds"))
+# predict_old <- read_rds(file.path("/Users/jeff/Projects/sheds/data/bto-model//1.3.0", "model-predict.rds"))
+#
+# predict_new <- read_rds(file.path("/Users/jeff/Projects/sheds/data/bto-model//1.4.0", "model-predict.rds"))
+#
+# glmm_new <- glmm
+# glmm_old <- calib_old$model
+#
+# df_new <- inp$data_std %>%
+#   filter(partition == "calib")
+# df_old <- inp_old$calib$data_std
+#
+# summary(glmm_new)
+# summary(glmm_old)
+#
+# pred_new <- model_pred(glmm_new, df_new)
+# pred_old <- model_pred(glmm_old, df_old)
+#
+#
+# predict_new %>%
+#   select(featureid, huc12, new = occ_current) %>%
+#   left_join(
+#     predict_old %>%
+#       select(featureid, huc12, old = occ_current),
+#     by = c("featureid", "huc12")
+#   ) %>%
+#   sample_frac(size = 0.01) %>%
+#   ggplot(aes(old, new)) +
+#   geom_point(alpha = 0.5, size = 0.5)
+#
+#
+# df_current_std_new <- read_rds(file.path("/Users/jeff/Projects/sheds/data/bto-model//1.4.0", "pred-current-std.rds"))
+# df_current_std_old <- read_rds(file.path("/Users/jeff/Projects/sheds/data/bto-model//1.3.0", "pred-current-std.rds"))
+#
+# df_current_std <- bind_rows(
+#   df_current_std_new %>%
+#     mutate(source = "new"),
+#   df_current_std_old %>%
+#     mutate(source = "old")
+# )
+#
+# x <- df_current_std %>%
+#   filter(huc8 == "01050003")
+#
+# x %>%
+#   select(featureid, source, prob) %>%
+#   spread(source, prob) %>%
+#   ggplot(aes(new, old)) +
+#   geom_point(size = 0.5, alpha = 0.5)
+#
+# x %>%
+#   filter(featureid %in% x_f) %>%
+#   select(featureid, huc8, prob, source, all_of(covariates)) %>%
+#   summary
+#
+# x %>%
+#   select(featureid, source, prob, all_of(covariates)) %>%
+#   pivot_longer(-c(featureid, source)) %>%
+#   pivot_wider(names_from = "source") %>%
+#   ggplot(aes(new, old)) +
+#   geom_point(size = 0.5, alpha = 0.5) +
+#   facet_wrap(vars(name), scales = "free")
+#
+# x2 <- df_current_std_new %>%
+#   filter(huc8 == "01050003") %>%
+#   select(featureid, huc10, huc12, all_of(covariates), new = prob) %>%
+#   left_join(
+#     df_current_std_old %>%
+#       select(featureid, old = prob),
+#     by = "featureid"
+#   )
+#
+# x2 %>%
+#   pivot_longer(-c(featureid, huc10, huc12, new, old)) %>%
+#   ggplot(aes(new, old, color = pmin(pmax(value, -2), 2))) +
+#   geom_point(aes(), size = 0.5, alpha = 0.5) +
+#   scale_color_viridis_c() +
+#   facet_wrap(vars(name))
+#
+# x2 %>%
+#   ggplot(aes(new, old)) +
+#   geom_abline() +
+#   geom_point(size = 0.5, alpha = 0.5) +
+#   facet_wrap(vars(huc10))
+#
+#
+# df_ranef_new <- as_tibble(ranef(glmm_new)$huc10, rownames = "huc10")
+# df_ranef_old <- as_tibble(ranef(glmm_old)$huc10, rownames = "huc10")
+# df_ranef <- bind_rows(
+#   df_ranef_new %>%
+#     mutate(source = "new"),
+#   df_ranef_old %>%
+#     mutate(source = "old")
+# )
+#
+# df_ranef %>%
+#   filter(huc10 == "0105000304")
+#
+# inp$data %>%
+#   filter(huc10 == "0105000304")
+# inp_old$calib$data %>%
+#   filter(huc10 == "0105000304")
+# inp_old$valid$data %>%
+#   filter(huc10 == "0105000304")

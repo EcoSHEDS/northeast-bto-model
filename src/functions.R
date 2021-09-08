@@ -1,6 +1,6 @@
-load_config <- function() {
-  config <- config::get()
-  config$version <- config::get(file = "version.yml")
+load_config <- function(path = "./") {
+  config <- config::get(file = file.path(path, "config.yml"))
+  config$version <- config::get(file = file.path(path, "version.yml"))
   config$wd <- file.path(config$root, config$version$bto)
 
   if(!dir.exists(config$wd)) {
