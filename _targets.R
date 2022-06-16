@@ -1,0 +1,26 @@
+library(targets)
+
+# load all targets
+invisible(sapply(list.files("R", pattern = ".R$", full.names = TRUE), source))
+
+options(tidyverse.quiet = TRUE)
+tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot"))
+
+# load packages into session
+if (interactive()) {
+  sapply(tar_option_get("packages"), require, character.only = TRUE)
+}
+
+list(
+  tar_target(env_file, ".env", format = "file"),
+  tar_target(bto_version, "1.4.0"),
+  tar_target(bto_wd, file.path(Sys.getenv("BTO_WD_ROOT"), bto_version), cue = tar_cue(mode = "always")),
+
+  targets_huc,
+  targets_gis,
+  targets_obs,
+  targets_cov,
+  targets_temp,
+  targets_inp,
+  targets_calib
+)

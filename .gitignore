@@ -3,8 +3,12 @@
 .RData
 .Ruserdata
 
+.env
+
 config.sh
 config.yml
+
+_targets/
 
 docs/_book
 docs/_bookdown_files/
