@@ -43,11 +43,11 @@ Therefore, after cloning the repo, the user must create this file manually using
 default:
   root: "/path/to/bto-model-data/"
   db:
-    host: ecosheds.org
-    port: 5432
-    user: jeff
-    password: mochabeanhalocoffee
-    dbname: sheds
+    host: 
+    port: 
+    user: 
+    password: 
+    dbname: 
 ```
 
 The `root` variable defines the path to the model data directory, which is typically outside of this repo (model inputs/outputs should not be tracked by git).
