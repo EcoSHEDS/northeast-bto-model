@@ -1,25 +1,18 @@
-tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot"))
+tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot", "lme4"))
 
 targets_model <- list(
+  tar_target(model_formula, presence ~ mean_jul_temp + (1 | huc8)),
   tar_target(model_gm, {
     model_data <- filter(inp_split_std, partition == "calib")
-    lme4::glmer(
-      presence ~ AreaSqKM * summer_prcp_mm +
-        mean_jul_temp +
-        forest +
-        allonnet +
-        devel_hi +
-        agriculture +
-        mean_jul_temp * forest +
-        summer_prcp_mm * forest +
-        (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
+    glmer(
+      model_formula,
       family = binomial(link = "logit"),
       data = model_data,
-      control = lme4::glmerControl(optimizer = "bobyqa")
+      control = glmerControl(optimizer = "bobyqa")
     )
   }),
   tar_target(model_eff_names, {
-    setdiff(names(model_gm@frame), c("presence", "huc10"))
+    setdiff(names(model_gm@frame), c("presence", "huc8"))
   }),
   tar_target(model_gm_plot_est, {
     plot_model(model_gm, sort.est = TRUE, show.values = TRUE, value.offset = 0.3)
@@ -31,16 +24,13 @@ targets_model <- list(
     })
     wrap_plots(p)
   }),
-  tar_target(model_gm_plot_eff_temp_agriculture, {
-    plot_model(model_gm, type = "eff", terms = c("mean_jul_temp [all]", "forest [-1, 0, 1]", "agriculture [-1, 0, 1]"))
-  }),
   tar_target(model_gm_plot_re, {
     plot_model(model_gm, type = "re")
   }),
 
   tar_target(model_ranef, {
-    as_tibble(lme4::ranef(model_gm)$huc10, rownames = "huc10") %>%
-      pivot_longer(-huc10)
+    as_tibble(ranef(model_gm)$huc8, rownames = "huc8") %>%
+      pivot_longer(-huc8)
   }),
   tar_target(model_ranef_plot, {
     model_ranef %>%
@@ -48,33 +38,19 @@ targets_model <- list(
       geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5) +
       geom_histogram() +
       facet_wrap(vars(name)) +
-      labs(x = NULL, y = "# HUC10s", title = "Distributions of HUC10 Random Effects") +
+      labs(x = NULL, y = "# HUC8s", title = "Distributions of HUC8 Random Effects") +
       theme(strip.background = element_blank(), strip.placement = "outside", strip.text = element_text(size = 10))
   }),
   tar_target(model_ranef_map, {
-    gis_huc10 %>%
-      left_join(
+    gis_huc8_poly %>%
+      inner_join(
         model_ranef,
-        by = "huc10"
+        by = "huc8"
       ) %>%
-      filter(name != "(Intercept)") %>%
       ggplot() +
-      geom_sf(aes(color = value), size = 1) +
+      geom_sf(aes(fill = value)) +
       geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
-      scale_color_viridis_c() +
-      facet_wrap(vars(name))
-  }),
-  tar_target(model_ranef_map_intercept, {
-    gis_huc10 %>%
-      left_join(
-        model_ranef,
-        by = "huc10"
-      ) %>%
-      filter(name == "(Intercept)") %>%
-      ggplot() +
-      geom_sf(aes(color = value), size = 1) +
-      geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
-      scale_color_viridis_c() +
+      scale_fill_viridis_c() +
       facet_wrap(vars(name))
   }),
 
@@ -99,6 +75,7 @@ targets_model <- list(
   }),
 
   tar_target(model_gof, create_model_gof(model_pred)),
+  tar_target(model_confusion, set_names(model_gof$cm, model_gof$partition)),
   tar_target(model_gof_plot_roc_curves, {
     auc <- set_names(model_gof$auc, model_gof$partition)
     model_gof %>%

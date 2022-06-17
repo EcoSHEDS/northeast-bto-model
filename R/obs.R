@@ -126,7 +126,7 @@ targets_obs <- list(
       plot_layout(guides = "collect")
   }),
   tar_target(obs_regional_huc10, {
-    gis_huc10 %>%
+    gis_huc10_pnt %>%
       left_join(
         obs_regional %>%
           left_join(select(huc_catchment, featureid, huc10), by = "featureid") %>%

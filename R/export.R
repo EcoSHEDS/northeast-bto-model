@@ -1,5 +1,5 @@
 targets_export <- list(
-  tar_target(export_csv, {
+  tar_target(export_predict_csv, {
     stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
     filename <- file.path(bto_wd, glue("bto-model-v", bto_version, ".csv"))
     predict_pred %>%
@@ -7,6 +7,22 @@ targets_export <- list(
       write_csv(filename, na = "")
     filename
   }, format = "file"),
+  tar_target(export_params_json, {
+    stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
+    filename <- file.path(bto_wd, glue("bto-model-v", bto_version, "-params.json"))
+
+    x_fixef <- fixef(predict_model)
+    names(x_fixef) <- c("intercept", names(x_fixef)[2:length(names(x_fixef))])
+    x_ranef <- as_tibble(ranef(predict_model)$huc8, rownames = "huc8") %>%
+      rename(intercept = "(Intercept)")
+    x_ranef
+    list(
+      fixed = as.list(x_fixef),
+      random = x_ranef
+    ) %>%
+      jsonlite::write_json(filename, auto_unbox = TRUE, pretty = TRUE)
+    filename
+  }),
   tar_target(export_rds, {
     stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
     filename <- file.path(bto_wd, glue("bto-model-v", bto_version, ".rds"))

@@ -4,7 +4,7 @@ library(targets)
 invisible(sapply(list.files("R", pattern = ".R$", full.names = TRUE), source))
 
 options(tidyverse.quiet = TRUE)
-tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot"))
+tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot", "lme4"))
 
 # load packages into session
 if (interactive()) {

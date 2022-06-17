@@ -1,9 +1,9 @@
-tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot"))
+tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot", "lme4"))
 
 targets_predict <- list(
   tar_target(predict_inp_all, {
     obs_presence %>%
-      left_join(select(huc_catchment, featureid, huc10), by = "featureid") %>%
+      left_join(huc_catchment, by = "featureid") %>%
       left_join(cov_all, by = "featureid") %>%
       left_join(temp_model, by = "featureid") %>%
       mutate_at(vars(starts_with("huc")), as.factor)
@@ -31,28 +31,20 @@ targets_predict <- list(
       ) %>%
       select(-mean, -sd) %>%
       pivot_wider() %>%
-      arrange(huc10, featureid) %>%
+      arrange(huc8, featureid) %>%
       mutate(partition = "calib", .before = 1)
   }),
   tar_target(predict_model, {
-    lme4::glmer(
-      presence ~ AreaSqKM * summer_prcp_mm +
-        mean_jul_temp +
-        forest +
-        allonnet +
-        devel_hi +
-        agriculture +
-        mean_jul_temp * forest +
-        summer_prcp_mm * forest +
-        (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
+    glmer(
+      model_formula,
       family = binomial(link = "logit"),
       data = predict_inp_std,
-      control = lme4::glmerControl(optimizer = "bobyqa")
+      control = glmerControl(optimizer = "bobyqa")
     )
   }),
 
   tar_target(predict_model_eff_names, {
-    setdiff(names(predict_model@frame), c("presence", "huc10"))
+    setdiff(names(predict_model@frame), c("presence", "huc8"))
   }),
   tar_target(predict_model_gm_plot_est, {
     plot_model(predict_model, sort.est = TRUE, show.values = TRUE, value.offset = 0.3)
@@ -70,7 +62,7 @@ targets_predict <- list(
 
   tar_target(predict_data, {
     x <- huc_catchment %>%
-      select(featureid, huc10) %>%
+      select(featureid, huc8) %>%
       left_join(cov_all, by = "featureid") %>%
       left_join(temp_model, by = "featureid") %>%
       mutate_at(vars(starts_with("huc")), as.factor) %>%
