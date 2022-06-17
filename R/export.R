@@ -11,12 +11,18 @@ targets_export <- list(
     stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
     filename <- file.path(bto_wd, glue("bto-model-v", bto_version, "-params.json"))
 
+    x_std <- predict_inp_variable_std %>%
+      nest_by(name)
+    x_std <- as.list(set_names(map(x_std$data, as.list), x_std$name))
+
     x_fixef <- fixef(predict_model)
     names(x_fixef) <- c("intercept", names(x_fixef)[2:length(names(x_fixef))])
+
     x_ranef <- as_tibble(ranef(predict_model)$huc8, rownames = "huc8") %>%
       rename(intercept = "(Intercept)")
-    x_ranef
+
     list(
+      std = x_std,
       fixed = as.list(x_fixef),
       random = x_ranef
     ) %>%
@@ -29,6 +35,7 @@ targets_export <- list(
     list(
       obs = obs_presence,
       inp = predict_inp_all,
+      std = predict_inp_variable_std,
       model = predict_model,
       pred = predict_pred
     ) %>%

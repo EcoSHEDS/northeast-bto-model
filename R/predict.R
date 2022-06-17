@@ -4,9 +4,10 @@ targets_predict <- list(
   tar_target(predict_inp_all, {
     obs_presence %>%
       left_join(huc_catchment, by = "featureid") %>%
-      left_join(cov_all, by = "featureid") %>%
+      # left_join(cov_all, by = "featureid") %>%
       left_join(temp_model, by = "featureid") %>%
-      mutate_at(vars(starts_with("huc")), as.factor)
+      mutate_at(vars(starts_with("huc")), as.factor) %>%
+      select(featureid, presence, starts_with("huc"), mean_jul_temp)
   }),
   tar_target(predict_inp_complete, {
     predict_inp_all %>%
@@ -61,31 +62,22 @@ targets_predict <- list(
   tar_target(predict_model_gof, create_model_gof(predict_model_pred)),
 
   tar_target(predict_data, {
-    x <- huc_catchment %>%
+    huc_catchment %>%
       select(featureid, huc8) %>%
       left_join(cov_all, by = "featureid") %>%
       left_join(temp_model, by = "featureid") %>%
-      mutate_at(vars(starts_with("huc")), as.factor) %>%
       filter(
         complete.cases(.),
         AreaSqKM <= 200,
         n_day_temp_gt_18 < 300
-      )
-    x_air <- x %>%
-      select(featureid, starts_with("mean_jul_temp")) %>%
+      ) %>%
+      select(featureid, huc8, starts_with("mean_jul_temp")) %>%
       rename(mean_jul_temp_air0 = mean_jul_temp) %>%
-      pivot_longer(-featureid, values_to = "mean_jul_temp") %>%
+      pivot_longer(-c(featureid, huc8), values_to = "mean_jul_temp") %>%
       mutate(
         air = as.numeric(str_sub(name, 18, 19))
       ) %>%
-      select(air, featureid, mean_jul_temp)
-    x %>%
-      select(-starts_with("mean_jul_temp"), -mean_summer_temp, -n_day_temp_gt_18) %>%
-      full_join(
-        x_air,
-        by = "featureid"
-      ) %>%
-      relocate(air)
+      select(air, featureid, huc8, mean_jul_temp)
   }),
   tar_target(predict_data_std, {
     predict_data %>%
