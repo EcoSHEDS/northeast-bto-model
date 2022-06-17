@@ -11,7 +11,6 @@ targets_inp <- list(
   tar_target(inp_complete, {
     inp_all %>%
       filter(complete.cases(.))
-      # pivot_longer(-c(featureid, presence, starts_with("huc")))
   }),
   tar_target(inp_split_frac_calib, 0.8),
   tar_target(inp_split, {

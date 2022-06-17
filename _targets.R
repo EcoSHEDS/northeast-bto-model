@@ -12,8 +12,7 @@ if (interactive()) {
 }
 
 list(
-  tar_target(env_file, ".env", format = "file"),
-  tar_target(bto_version, "1.4.0"),
+  tar_target(bto_version, "2.0.0"),
   tar_target(bto_wd, file.path(Sys.getenv("BTO_WD_ROOT"), bto_version), cue = tar_cue(mode = "always")),
 
   targets_huc,
@@ -22,5 +21,7 @@ list(
   targets_cov,
   targets_temp,
   targets_inp,
-  targets_calib
+  targets_model,
+  targets_predict,
+  targets_export
 )

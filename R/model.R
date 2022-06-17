@@ -1,8 +1,8 @@
 tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv", "sjPlot"))
 
-targets_calib <- list(
-  tar_target(calib_data, filter(inp_split_std, partition == "calib")),
-  tar_target(calib_model, {
+targets_model <- list(
+  tar_target(model_gm, {
+    model_data <- filter(inp_split_std, partition == "calib")
     lme4::glmer(
       presence ~ AreaSqKM * summer_prcp_mm +
         mean_jul_temp +
@@ -14,36 +14,36 @@ targets_calib <- list(
         summer_prcp_mm * forest +
         (1 + AreaSqKM + agriculture + summer_prcp_mm + mean_jul_temp | huc10),
       family = binomial(link = "logit"),
-      data = calib_data,
+      data = model_data,
       control = lme4::glmerControl(optimizer = "bobyqa")
     )
   }),
-  tar_target(calib_model_names, {
-    setdiff(names(calib_model@frame), c("presence", "huc10"))
+  tar_target(model_eff_names, {
+    setdiff(names(model_gm@frame), c("presence", "huc10"))
   }),
-  tar_target(calib_model_plot_est, {
-    plot_model(calib_model, sort.est = TRUE, show.values = TRUE, value.offset = 0.3)
+  tar_target(model_gm_plot_est, {
+    plot_model(model_gm, sort.est = TRUE, show.values = TRUE, value.offset = 0.3)
   }),
-  tar_target(calib_model_plot_eff, {
-    p <- map(calib_model_names, function (v) {
-      plot_model(calib_model, type = "eff", terms = glue("{v} [all]")) +
+  tar_target(model_gm_plot_eff, {
+    p <- map(model_eff_names, function (v) {
+      plot_model(model_gm, type = "eff", terms = glue("{v} [all]")) +
         labs(title = v)
     })
     wrap_plots(p)
   }),
-  tar_target(calib_model_plot_eff_temp_agriculture, {
-    plot_model(calib_model, type = "eff", terms = c("mean_jul_temp [all]", "forest [-1, 0, 1]", "agriculture [-1, 0, 1]"))
+  tar_target(model_gm_plot_eff_temp_agriculture, {
+    plot_model(model_gm, type = "eff", terms = c("mean_jul_temp [all]", "forest [-1, 0, 1]", "agriculture [-1, 0, 1]"))
   }),
-  tar_target(calib_model_plot_re, {
-    plot_model(calib_model, type = "re")
+  tar_target(model_gm_plot_re, {
+    plot_model(model_gm, type = "re")
   }),
 
-  tar_target(calib_ranef, {
-    as_tibble(lme4::ranef(calib_model)$huc10, rownames = "huc10") %>%
+  tar_target(model_ranef, {
+    as_tibble(lme4::ranef(model_gm)$huc10, rownames = "huc10") %>%
       pivot_longer(-huc10)
   }),
-  tar_target(calib_ranef_plot, {
-    calib_ranef %>%
+  tar_target(model_ranef_plot, {
+    model_ranef %>%
       ggplot(aes(value)) +
       geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5) +
       geom_histogram() +
@@ -51,10 +51,10 @@ targets_calib <- list(
       labs(x = NULL, y = "# HUC10s", title = "Distributions of HUC10 Random Effects") +
       theme(strip.background = element_blank(), strip.placement = "outside", strip.text = element_text(size = 10))
   }),
-  tar_target(calib_ranef_map, {
+  tar_target(model_ranef_map, {
     gis_huc10 %>%
       left_join(
-        calib_ranef,
+        model_ranef,
         by = "huc10"
       ) %>%
       filter(name != "(Intercept)") %>%
@@ -64,10 +64,10 @@ targets_calib <- list(
       scale_color_viridis_c() +
       facet_wrap(vars(name))
   }),
-  tar_target(calib_ranef_map_intercept, {
+  tar_target(model_ranef_map_intercept, {
     gis_huc10 %>%
       left_join(
-        calib_ranef,
+        model_ranef,
         by = "huc10"
       ) %>%
       filter(name == "(Intercept)") %>%
@@ -78,16 +78,11 @@ targets_calib <- list(
       facet_wrap(vars(name))
   }),
 
-  tar_target(calib_pred, {
-    inp_split_std %>%
-      mutate(
-        pred = boot::inv.logit(predict(calib_model, inp_split_std, allow.new.levels = TRUE))
-      )
-  }),
-  tar_target(calib_pred_map, {
+  tar_target(model_pred, create_model_pred(inp_split_std, model_gm)),
+  tar_target(model_pred_map, {
     gis_catchments %>%
       inner_join(
-        calib_pred %>%
+        model_pred %>%
           select(
             partition,
             featureid,
@@ -103,51 +98,10 @@ targets_calib <- list(
       facet_wrap(vars(partition))
   }),
 
-  tar_target(calib_gof, {
-    calib_pred %>%
-      transmute(
-        partition, featureid, pred, presence,
-        result = case_when(
-          presence == 0 & pred < 0.5 ~ "TN",
-          presence == 0 & pred >= 0.5 ~ "FP",
-          presence == 1 & pred < 0.5 ~ "FN",
-          TRUE ~ "TP"
-        )
-      ) %>%
-      nest_by(partition) %>%
-      mutate(
-        roc = list({
-          r <- AUC::roc(data$pred, as.factor(data$presence))
-          tibble(
-            cutoff = r[[1]],
-            fpr = r[[2]],
-            tpr = r[[3]]
-          )
-        }),
-        cm = list({
-          caret::confusionMatrix(
-            data = factor(1 * (data$pred > 0.5)),
-            reference = factor(data$presence),
-            mode = "sens_spec",
-            positive = "1"
-          )
-        }),
-        stats = list({
-          tibble(
-            n = nrow(data),
-            TP = sum(data$result == "TP"),
-            TN = sum(data$result == "TN"),
-            FP = sum(data$result == "FP"),
-            FN = sum(data$result == "FN"),
-            auc = AUC::auc(AUC::roc(data$pred, as.factor(data$presence)))
-          )
-        })
-      ) %>%
-      unnest(stats)
-  }),
-  tar_target(calib_gof_plot_roc_curves, {
-    auc <- set_names(calib_gof$auc, calib_gof$partition)
-    calib_gof %>%
+  tar_target(model_gof, create_model_gof(model_pred)),
+  tar_target(model_gof_plot_roc_curves, {
+    auc <- set_names(model_gof$auc, model_gof$partition)
+    model_gof %>%
       select(partition, roc) %>%
       unnest(roc) %>%
       ggplot(aes(fpr, tpr)) +
@@ -162,10 +116,10 @@ targets_calib <- list(
         subtitle = glue("AUC = {round(auc[['calib']], 3)} (calib), {round(auc[['valid']], 3)} (valid)")
       )
   }),
-  tar_target(calib_gof_map_partition_TFNP, {
+  tar_target(model_gof_map_partition_TFNP, {
     gis_catchments %>%
       inner_join(
-        calib_gof %>%
+        model_gof %>%
           select(
             partition,
             data
@@ -188,14 +142,14 @@ targets_calib <- list(
       )))
   }),
 
-  tar_target(calib_gof_state, {
+  tar_target(model_gof_state, {
     # gof by state
     state_catchment <- gis_catchments %>%
-      filter(featureid %in% calib_pred$featureid) %>%
+      filter(featureid %in% model_pred$featureid) %>%
       st_intersection(gis_states) %>%
       as_tibble() %>%
       select(featureid, state_abbr)
-    calib_gof %>%
+    model_gof %>%
       ungroup() %>%
       select(partition, data) %>%
       unnest(data) %>%
@@ -224,15 +178,15 @@ targets_calib <- list(
       ) %>%
       unnest(stats)
   }),
-  tar_target(calib_gof_state_plot, {
-    calib_gof_state %>%
+  tar_target(model_gof_state_plot, {
+    model_gof_state %>%
       ggplot(aes(state_abbr)) +
       geom_point(
         aes(y = accuracy, shape = accuracy_pval <= 0.1, color = partition),
         size = 2
       ) +
       geom_hline(
-        data = calib_gof %>%
+        data = model_gof %>%
           transmute(
             partition,
             accuracy = map_dbl(cm, ~ .$overall[['Accuracy']])
