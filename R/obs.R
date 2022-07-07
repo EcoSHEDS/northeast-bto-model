@@ -1,7 +1,7 @@
 tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "glue", "patchwork", "dotenv"))
 
 targets_obs <- list(
-  tar_target(obs_madfw_file, "data/obs/madfw-ebt-raw.csv", format = "file"),
+  tar_target(obs_madfw_file, "data/madfw-ebt.csv", format = "file"),
   tar_target(obs_madfw_raw, {
     # source: 20181206 - MA Wildlife Data/MassWildlife coldwater spp/Brook_Trout_nat_prod.shp
     # note: presence only
@@ -62,7 +62,7 @@ targets_obs <- list(
       labs(title = "MADFW EBT Dataset (Presence Only)")
   }),
 
-  tar_target(obs_regional_file, "data/obs/regional_occupancy_data.csv", format = "file"),
+  tar_target(obs_regional_file, "data/regional_occupancy_data.csv", format = "file"),
   tar_target(obs_regional, {
     read_csv(obs_regional_file, col_types = cols(
       featureid = col_double(),
@@ -93,14 +93,32 @@ targets_obs <- list(
       ) +
       labs(title = "Regional Dataset")
   }),
+  tar_target(obs_regional_map_ma, {
+    obs_regional_catchments %>%
+      st_intersection(filter(gis_states, state_abbr == "MA")) %>%
+      filter(state_abbr == "MA") |>
+      ggplot() +
+      geom_sf(aes(color = factor(presence)), size = 0.5) +
+      geom_sf(data = filter(gis_states, state_abbr == "MA"), fill = NA) +
+      scale_color_manual(
+        NULL,
+        values = c("0" = "orangered", "1" = "deepskyblue"),
+        labels = c("0" = "Absence", "1" = "Presence")
+      ) +
+      guides(
+        color = guide_legend(override.aes = list(alpha = 1, size = 1))
+      ) +
+      labs(title = "Regional Dataset (MA Only)")
+  }),
   tar_target(obs_regional_states, {
     obs_regional_catchments %>%
       st_intersection(gis_states) %>%
       st_drop_geometry()
   }),
   tar_target(obs_regional_states_plot, {
+    state_levels <- c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")
     p1 <- obs_regional_states %>%
-      ggplot(aes(ordered(state_abbr, levels = c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")))) +
+      ggplot(aes(ordered(state_abbr, levels = state_levels))) +
       geom_bar(aes(fill = factor(presence))) +
       scale_fill_manual(
         NULL,
@@ -111,7 +129,7 @@ targets_obs <- list(
       labs(x = "State", y = "# Catchments")
 
     p2 <- obs_regional_states %>%
-      ggplot(aes(ordered(state_abbr, levels = c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")))) +
+      ggplot(aes(ordered(state_abbr, levels = state_levels))) +
       geom_bar(aes(fill = factor(presence)), position = "fill") +
       scale_fill_manual(
         NULL,

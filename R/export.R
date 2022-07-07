@@ -1,7 +1,7 @@
 targets_export <- list(
   tar_target(export_predict_csv, {
     stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
-    filename <- file.path(bto_wd, glue("bto-model-v", bto_version, ".csv"))
+    filename <- file.path(bto_wd, "bto-model.csv")
     predict_pred %>%
       mutate(across(-featureid, signif, digits = 3)) %>%
       write_csv(filename, na = "")
@@ -9,7 +9,7 @@ targets_export <- list(
   }, format = "file"),
   tar_target(export_params_json, {
     stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
-    filename <- file.path(bto_wd, glue("bto-model-v", bto_version, "-params.json"))
+    filename <- file.path(bto_wd, "params.json")
 
     x_std <- predict_inp_variable_std %>%
       nest_by(name)
@@ -31,7 +31,7 @@ targets_export <- list(
   }),
   tar_target(export_rds, {
     stopifnot("bto_wd does not exist" = dir.exists(bto_wd))
-    filename <- file.path(bto_wd, glue("bto-model-v", bto_version, ".rds"))
+    filename <- file.path(bto_wd, "bto-model.rds")
     list(
       obs = obs_presence,
       inp = predict_inp_all,
