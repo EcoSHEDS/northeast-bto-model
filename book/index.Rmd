@@ -10,7 +10,7 @@ biblio-style: apalike
 csl: https://raw.githubusercontent.com/robertour/apalike-zotero/master/apalike.csl
 csl-entry-spacing: 1em
 link-citations: yes
-github-repo: walkerjeffd/sheds-bto-model
+github-repo: EcoSHEDS/northeast-bto-model
 description: "Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model."
 editor_options: 
   chunk_output_type: console
@@ -80,5 +80,5 @@ The documentation is divided into the following sections:
 
 ## Source Code
 
-The source code for the model itself and this documentation is available in the Github repository [walkerjeffd/sheds-bto-model](https://github.com/EcoSHEDS/northeast-bto-model). Each version of the model will be included under the list of [Releases](https://github.com/EcoSHEDS/northeast-bto-model/releases).
+The source code for the model itself and this documentation is available in the Github repository [EcoSHEDS/northeast-bto-model](https://github.com/EcoSHEDS/northeast-bto-model). Each version of the model will be included under the list of [Releases](https://github.com/EcoSHEDS/northeast-bto-model/releases).
 

@@ -7,19 +7,29 @@ Jeffrey D. Walker, PhD
 [Walker Environmental Research LLC](https://walkerenvres.com/)
 
 Benjamin Letcher, PhD  
-[USGS](https://www.usgs.gov/staff-profiles/benjamin-h-letcher)
+[USGS, Eastern Ecological Science Center](https://www.usgs.gov/staff-profiles/benjamin-h-letcher)
 
 ## About
 
-This repo contains the source code and documentation for the [EcoSHEDS Northeast Brook Trout Occupancy Model](https://ecosheds.github.io/northeast-bto-model).
+This repo contains the source code and documentation for the [EcoSHEDS Northeast Brook Trout Occupancy Model](https://github.com/EcoSHEDS/northeast-bto-model).
+
+Model Documentation: https://ecosheds.github.io/northeast-bto-model
 
 ## Overview
 
 The brook trout occupancy model is developed using an orchestrated data pipeline based on the [{targets}](https://books.ropensci.org/targets/) package. The entry point for this pipeline is the `_targets.R` file. The individual objects (data frames, model objects, plots) of this pipeline are defined in a series of scripts within the `./R` directory. These components are then loaded into the main targets pipeline within `_targets.R`. See the [{targets} book](https://books.ropensci.org/targets/) for more information about how to run and access each object.
 
+## Package Installation
+
+R package dependencies are managed and tracked using the [{renv}](https://rstudio.github.io/renv/index.html) package. After cloning this repo and opening the project in RStudio, run the following command to install the package dependences.
+
+```r
+renv::restore()
+```
+
 ## Configuration
 
-Before running the data pipeline, configuration variables must be defined within a file named `.env` located within the project root directory. This file is not tracked by git, and therefore must be created manually. The configuration variables are automatically loaded using the [{dotenv}](https://github.com/gaborcsardi/dotenv) package. The `.env` file must contain the following variables.
+Before running the data pipeline, the local configuration variables must be defined within a file named `.env` located within the project root directory. This file is not tracked by git, and therefore must be created manually. The configuration variables are automatically loaded using the [{dotenv}](https://github.com/gaborcsardi/dotenv) package. The `.env` file must contain the following variables.
 
 ```
 BTO_WD_ROOT="/path/to/bto-model"
