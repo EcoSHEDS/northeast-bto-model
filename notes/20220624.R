@@ -35,8 +35,8 @@ inp_featureid |>
 df_gm <- tibble(
   name = c("huc8", "featureid"),
   inp = list(inp_huc8, inp_featureid)
-) %>%
-  rowwise() %>%
+) |>
+  rowwise() |>
   mutate(
     model = list({
       x <- filter(inp, partition == "calib")
@@ -49,25 +49,25 @@ df_gm <- tibble(
     }),
     pred = list(create_model_pred(inp, model)),
     gof = list(create_model_gof(pred))
-  ) %>%
-  unnest(gof) %>%
-  select(-pred) %>%
-  rowwise() %>%
+  ) |>
+  unnest(gof) |>
+  select(-pred) |>
+  rowwise() |>
   mutate(
     accuracy = list(pivot_wider(enframe(cm$overall)))
-  ) %>%
-  unnest(accuracy) %>%
-  rowwise() %>%
+  ) |>
+  unnest(accuracy) |>
+  rowwise() |>
   mutate(
     by_class = list(pivot_wider(enframe(cm$byClass)))
-  ) %>%
-  unnest(by_class) %>%
+  ) |>
+  unnest(by_class) |>
   clean_names()
 
-df_gm %>%
-  arrange(partition, name) %>%
-  select(name, partition, auc, accuracy, sensitivity, specificity) %>%
-  pivot_longer(-c(name, partition), names_to = "stat") %>%
+df_gm |>
+  arrange(partition, name) |>
+  select(name, partition, auc, accuracy, sensitivity, specificity) |>
+  pivot_longer(-c(name, partition), names_to = "stat") |>
   ggplot(aes(name, value, color = partition)) +
   geom_line(aes(group = partition)) +
   geom_point() +
@@ -80,8 +80,8 @@ df_gm %>%
 
 df_gm2 <- tibble(
   name = fct_inorder(c("huc4", "huc6", "huc8", "huc10", "huc12")),
-) %>%
-  rowwise() %>%
+) |>
+  rowwise() |>
   mutate(
     inp = list(inp_featureid),
     formula = list(as.formula(glue::glue("presence ~ mean_jul_temp + (1 | {name})"))),
@@ -96,26 +96,26 @@ df_gm2 <- tibble(
     }),
     pred = list(create_model_pred(inp, model)),
     gof = list(create_model_gof(pred))
-  ) %>%
-  unnest(gof) %>%
-  select(-pred) %>%
-  rowwise() %>%
+  ) |>
+  unnest(gof) |>
+  select(-pred) |>
+  rowwise() |>
   mutate(
     accuracy = list(pivot_wider(enframe(cm$overall)))
-  ) %>%
-  unnest(accuracy) %>%
-  rowwise() %>%
+  ) |>
+  unnest(accuracy) |>
+  rowwise() |>
   mutate(
     by_class = list(pivot_wider(enframe(cm$byClass)))
-  ) %>%
-  unnest(by_class) %>%
+  ) |>
+  unnest(by_class) |>
   clean_names()
 
 
-df_gm2 %>%
-  arrange(partition, name) %>%
-  select(name, partition, auc, accuracy, sensitivity, specificity) %>%
-  pivot_longer(-c(name, partition), names_to = "stat") %>%
+df_gm2 |>
+  arrange(partition, name) |>
+  select(name, partition, auc, accuracy, sensitivity, specificity) |>
+  pivot_longer(-c(name, partition), names_to = "stat") |>
   ggplot(aes(name, value, color = partition)) +
   geom_line(aes(group = partition)) +
   geom_point() +

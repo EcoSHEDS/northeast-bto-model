@@ -11,14 +11,14 @@ db_connect <- function() {
 }
 
 create_model_pred <- function (x, m) {
-  x %>%
+  x |>
     mutate(
       pred = boot::inv.logit(predict(m, x, allow.new.levels = TRUE))
     )
 }
 
 create_model_gof <- function (x) {
-  x %>%
+  x |>
     transmute(
       partition, featureid, pred, presence,
       result = case_when(
@@ -27,8 +27,8 @@ create_model_gof <- function (x) {
         presence == 1 & pred < 0.5 ~ "FN",
         TRUE ~ "TP"
       )
-    ) %>%
-    nest_by(partition) %>%
+    ) |>
+    nest_by(partition) |>
     mutate(
       roc = list({
         r <- AUC::roc(data$pred, as.factor(data$presence))
@@ -56,6 +56,6 @@ create_model_gof <- function (x) {
           auc = AUC::auc(AUC::roc(data$pred, as.factor(data$presence)))
         )
       })
-    ) %>%
+    ) |>
     unnest(stats)
 }

@@ -29,11 +29,11 @@ targets_model <- list(
   }),
 
   tar_target(model_ranef, {
-    as_tibble(ranef(model_gm)$huc8, rownames = "huc8") %>%
+    as_tibble(ranef(model_gm)$huc8, rownames = "huc8") |>
       pivot_longer(-huc8)
   }),
   tar_target(model_ranef_plot, {
-    model_ranef %>%
+    model_ranef |>
       ggplot(aes(value)) +
       geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5) +
       geom_histogram() +
@@ -42,24 +42,30 @@ targets_model <- list(
       theme(strip.background = element_blank(), strip.placement = "outside", strip.text = element_text(size = 10))
   }),
   tar_target(model_ranef_map, {
-    gis_huc8_poly %>%
+    gis_huc8_poly |>
       inner_join(
         model_ranef,
         by = "huc8"
-      ) %>%
+      ) |>
       st_transform("EPSG:4326") |>
       ggplot() +
       geom_sf(aes(fill = value)) +
       geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
       scale_fill_viridis_c() +
-      facet_wrap(vars(name))
+      facet_wrap(vars(name)) +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
+      )
   }),
 
   tar_target(model_pred, create_model_pred(inp_split, model_gm)),
   tar_target(model_pred_map, {
-    gis_catchments %>%
+    gis_catchments |>
       inner_join(
-        model_pred %>%
+        model_pred |>
           select(
             partition,
             featureid,
@@ -67,7 +73,7 @@ targets_model <- list(
             pred
           ),
         by = "featureid"
-      ) %>%
+      ) |>
       ggplot() +
       geom_sf(aes(color = pred), alpha = 0.5, size = 1) +
       geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
@@ -79,9 +85,9 @@ targets_model <- list(
   tar_target(model_confusion, set_names(model_gof$cm, model_gof$partition)),
   tar_target(model_gof_plot_roc_curves, {
     auc <- set_names(model_gof$auc, model_gof$partition)
-    model_gof %>%
-      select(partition, roc) %>%
-      unnest(roc) %>%
+    model_gof |>
+      select(partition, roc) |>
+      unnest(roc) |>
       ggplot(aes(fpr, tpr)) +
       geom_abline(linetype = "dashed") +
       geom_line(aes(color = partition)) +
@@ -98,19 +104,19 @@ targets_model <- list(
       )
   }),
   tar_target(model_gof_map_partition_TFNP, {
-    gis_catchments %>%
+    gis_catchments |>
       inner_join(
-        model_gof %>%
+        model_gof |>
           select(
             partition,
             data
-          ) %>%
+          ) |>
           unnest(data),
         by = "featureid"
-      ) %>%
+      ) |>
       mutate(
         result = ordered(result, levels = c("TP", "TN", "FP", "FN"))
-      ) %>%
+      ) |>
       ggplot() +
       geom_sf(aes(color = result), alpha = 1, size = 0.5) +
       geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
@@ -125,17 +131,17 @@ targets_model <- list(
 
   tar_target(model_gof_state, {
     # gof by state
-    state_catchment <- gis_catchments %>%
-      filter(featureid %in% model_pred$featureid) %>%
-      st_intersection(gis_states) %>%
-      as_tibble() %>%
+    state_catchment <- gis_catchments |>
+      filter(featureid %in% model_pred$featureid) |>
+      st_intersection(gis_states) |>
+      as_tibble() |>
       select(featureid, state_abbr)
-    model_gof %>%
-      ungroup() %>%
-      select(partition, data) %>%
-      unnest(data) %>%
-      left_join(state_catchment, by = "featureid") %>%
-      nest_by(partition, state_abbr) %>%
+    model_gof |>
+      ungroup() |>
+      select(partition, data) |>
+      unnest(data) |>
+      left_join(state_catchment, by = "featureid") |>
+      nest_by(partition, state_abbr) |>
       mutate(
         n = nrow(data),
         cm = list({
@@ -156,18 +162,18 @@ targets_model <- list(
             FN = sum(data$result == "FN")
           )
         })
-      ) %>%
+      ) |>
       unnest(stats)
   }),
   tar_target(model_gof_state_plot, {
-    model_gof_state %>%
+    model_gof_state |>
       ggplot(aes(state_abbr)) +
       geom_point(
         aes(y = accuracy, shape = accuracy_pval <= 0.1, color = partition),
         size = 2
       ) +
       geom_hline(
-        data = model_gof %>%
+        data = model_gof |>
           transmute(
             partition,
             accuracy = map_dbl(cm, ~ .$overall[['Accuracy']])

@@ -10,7 +10,7 @@ targets_obs <- list(
       latitude = col_double(),
       longitude = col_double(),
       year = col_double()
-    )) %>%
+    )) |>
       select(latitude, longitude, year)
   }),
   tar_target(obs_madfw, {
@@ -28,11 +28,11 @@ targets_obs <- list(
       x$featureid
     }
 
-    x <- obs_madfw_raw %>%
-      rowwise() %>%
+    x <- obs_madfw_raw |>
+      rowwise() |>
       mutate(
         featureid = find_featureid(latitude, longitude)
-      ) %>%
+      ) |>
       ungroup()
 
     DBI::dbDisconnect(con)
@@ -42,12 +42,12 @@ targets_obs <- list(
     x
   }),
   tar_target(obs_madfw_catchments, {
-    gis_catchments %>%
+    gis_catchments |>
       inner_join(obs_madfw, by = "featureid")
   }),
   tar_target(obs_madfw_map, {
-    obs_madfw_catchments %>%
-      mutate(presence = factor(1)) %>%
+    obs_madfw_catchments |>
+      mutate(presence = factor(1)) |>
       ggplot() +
       geom_sf(aes(color = presence), alpha = 1, size = 1) +
       geom_sf(data = filter(gis_states, state_abbr == "MA"), fill = NA) +
@@ -70,16 +70,16 @@ targets_obs <- list(
       catch = col_double(),
       year_min = col_double(),
       year_max = col_double()
-    )) %>%
-      mutate(presence = ifelse(catch > 0, 1, catch)) %>%
+    )) |>
+      mutate(presence = ifelse(catch > 0, 1, catch)) |>
       filter(!is.na(presence))
   }),
   tar_target(obs_regional_catchments, {
-    gis_catchments %>%
+    gis_catchments |>
       inner_join(obs_regional, by = "featureid")
   }),
   tar_target(obs_regional_map, {
-    obs_regional_catchments %>%
+    obs_regional_catchments |>
       ggplot() +
       geom_sf(aes(color = factor(presence)), alpha = 0.5, size = 0.5) +
       geom_sf(data = gis_states, fill = NA) +
@@ -93,8 +93,8 @@ targets_obs <- list(
       )
   }),
   tar_target(obs_regional_map_ma, {
-    obs_regional_catchments %>%
-      st_intersection(filter(gis_states, state_abbr == "MA")) %>%
+    obs_regional_catchments |>
+      st_intersection(filter(gis_states, state_abbr == "MA")) |>
       filter(state_abbr == "MA") |>
       ggplot() +
       geom_sf(aes(color = factor(presence)), size = 0.5) +
@@ -110,13 +110,13 @@ targets_obs <- list(
       labs(title = "Regional Dataset (MA Only)")
   }),
   tar_target(obs_regional_states, {
-    obs_regional_catchments %>%
-      st_intersection(gis_states) %>%
+    obs_regional_catchments |>
+      st_intersection(gis_states) |>
       st_drop_geometry()
   }),
   tar_target(obs_regional_states_plot, {
     state_levels <- c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")
-    p1 <- obs_regional_states %>%
+    p1 <- obs_regional_states |>
       ggplot(aes(ordered(state_abbr, levels = state_levels))) +
       geom_bar(aes(fill = factor(presence))) +
       scale_fill_manual(
@@ -127,7 +127,7 @@ targets_obs <- list(
       scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
       labs(x = "State", y = "# Catchments")
 
-    p2 <- obs_regional_states %>%
+    p2 <- obs_regional_states |>
       ggplot(aes(ordered(state_abbr, levels = state_levels))) +
       geom_bar(aes(fill = factor(presence)), position = "fill") +
       scale_fill_manual(
@@ -143,11 +143,11 @@ targets_obs <- list(
       plot_layout(guides = "collect")
   }),
   tar_target(obs_regional_huc10, {
-    gis_huc10_pnt %>%
+    gis_huc10_pnt |>
       left_join(
-        obs_regional %>%
-          left_join(select(huc_catchment, featureid, huc10), by = "featureid") %>%
-          group_by(huc10) %>%
+        obs_regional |>
+          left_join(select(huc_catchment, featureid, huc10), by = "featureid") |>
+          group_by(huc10) |>
           summarise(
             n = n(),
             presence = mean(presence),
@@ -157,13 +157,13 @@ targets_obs <- list(
       )
   }),
   tar_target(obs_regional_huc10_map, {
-    p1 <- obs_regional_huc10 %>%
+    p1 <- obs_regional_huc10 |>
       ggplot() +
       geom_sf(aes(color = n), size = 1.5) +
       geom_sf(data = gis_states, fill = NA) +
       scale_color_viridis_c() +
       labs(title = "# Catchments Observed")
-    p2 <- obs_regional_huc10 %>%
+    p2 <- obs_regional_huc10 |>
       ggplot() +
       geom_sf(aes(color = presence), size = 1.5) +
       geom_sf(data = gis_states, fill = NA) +
@@ -176,26 +176,26 @@ targets_obs <- list(
 
   tar_target(obs_presence_all, {
     bind_rows(
-      madfw = obs_madfw %>%
+      madfw = obs_madfw |>
         transmute(featureid, year_min = year, year_max = year, presence = 1),
-      regional = obs_regional %>%
+      regional = obs_regional |>
         select(featureid, year_min, year_max, presence),
       .id = "source"
     )
   }),
   tar_target(obs_presence_dups, {
-    obs_presence_all %>%
-      add_count(featureid) %>%
+    obs_presence_all |>
+      add_count(featureid) |>
       filter(n > 1)
   }),
   tar_target(obs_presence, {
     # drop duplicates using max(presence)
-    obs_presence_all %>%
-      group_by(featureid) %>%
+    obs_presence_all |>
+      group_by(featureid) |>
       summarise(presence = max(presence))
   }),
   tar_target(obs_presence_map, {
-    obs_presence_states %>%
+    obs_presence_states |>
       ggplot() +
       geom_sf(aes(color = factor(presence)), alpha = 0.5, size = 0.5) +
       geom_sf(data = gis_states, fill = NA) +
@@ -206,6 +206,12 @@ targets_obs <- list(
       ) +
       guides(
         color = guide_legend(override.aes = list(alpha = 1, size = 1))
+      ) +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
       )
   }),
   tar_target(obs_presence_states, {
@@ -218,7 +224,7 @@ targets_obs <- list(
       )
   }),
   tar_target(obs_presence_states_plot, {
-    p1 <- obs_presence_states %>%
+    p1 <- obs_presence_states |>
       ggplot(aes(state)) +
       geom_bar(aes(fill = factor(presence))) +
       scale_fill_manual(
@@ -229,7 +235,7 @@ targets_obs <- list(
       scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
       labs(x = "State", y = "# Catchments")
 
-    p2 <- obs_presence_states %>%
+    p2 <- obs_presence_states |>
       ggplot(aes(state)) +
       geom_bar(aes(fill = factor(presence)), position = "fill") +
       scale_fill_manual(

@@ -14,18 +14,18 @@ targets_temp <- list(
   }),
   tar_target(temp_model, {
     con <- db_connect()
-    x <- tbl(con, "temp_model") %>%
-      select(featureid, version, variable, value) %>%
+    x <- tbl(con, "temp_model") |>
+      select(featureid, version, variable, value) |>
       filter(
         version == temp_model_version,
         variable %in% temp_model_variables
-      ) %>%
+      ) |>
       collect()
     DBI::dbDisconnect(con)
 
-    x %>%
-      select(-version) %>%
-      pivot_wider(names_from = "variable") %>%
+    x |>
+      select(-version) |>
+      pivot_wider(names_from = "variable") |>
       relocate(featureid)
   }),
   tar_target(temp_model_catchments, {

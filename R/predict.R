@@ -2,16 +2,16 @@ tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "
 
 targets_predict <- list(
   tar_target(predict_inp_all, {
-    obs_presence %>%
-      left_join(huc_catchment, by = "featureid") %>%
-      # left_join(cov_all, by = "featureid") %>%
-      left_join(temp_model, by = "featureid") %>%
-      mutate_at(vars(starts_with("huc")), as.factor) %>%
+    obs_presence |>
+      left_join(huc_catchment, by = "featureid") |>
+      # left_join(cov_all, by = "featureid") |>
+      left_join(temp_model, by = "featureid") |>
+      mutate_at(vars(starts_with("huc")), as.factor) |>
       select(featureid, presence, starts_with("huc"), mean_jul_temp)
   }),
   tar_target(predict_inp, {
-    predict_inp_all %>%
-      filter(complete.cases(.)) |>
+    predict_inp_all |>
+      filter(!is.na(mean_jul_temp), !is.na(huc8)) |>
       mutate(partition = "pred")
   }),
   tar_target(predict_model, {
@@ -40,92 +40,97 @@ targets_predict <- list(
   tar_target(predict_model_pred, create_model_pred(predict_inp, predict_model)),
   tar_target(predict_model_gof, create_model_gof(predict_model_pred)),
   tar_target(predict_model_ranef, {
-    as_tibble(ranef(predict_model)$huc8, rownames = "huc8") %>%
+    as_tibble(ranef(predict_model)$huc8, rownames = "huc8") |>
       pivot_longer(-huc8)
   }),
   tar_target(predict_model_ranef_map, {
-    gis_huc8_poly %>%
+    gis_huc8_poly |>
       inner_join(
         predict_model_ranef,
         by = "huc8"
-      ) %>%
+      ) |>
       st_transform("EPSG:4326") |>
       ggplot() +
       geom_sf(aes(fill = value)) +
       geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
       scale_fill_viridis_c() +
-      facet_wrap(vars(name))
+      facet_wrap(vars(name)) +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
+      )
   }),
   tar_target(predict_data, {
-    huc_catchment %>%
-      select(featureid, huc8) %>%
-      left_join(cov_all, by = "featureid") %>%
-      left_join(temp_model, by = "featureid") %>%
+    huc_catchment |>
+      select(featureid, huc8) |>
+      left_join(cov_all, by = "featureid") |>
+      left_join(temp_model, by = "featureid") |>
       filter(
-        complete.cases(.),
         AreaSqKM <= 200,
         n_day_temp_gt_18 < 300
-      ) %>%
-      select(featureid, huc8, starts_with("mean_jul_temp")) %>%
-      rename(mean_jul_temp_air0 = mean_jul_temp) %>%
-      pivot_longer(-c(featureid, huc8), values_to = "mean_jul_temp") %>%
+      ) |>
+      select(featureid, huc8, starts_with("mean_jul_temp")) |>
+      rename(mean_jul_temp_air0 = mean_jul_temp) |>
+      pivot_longer(-c(featureid, huc8), values_to = "mean_jul_temp") |>
       mutate(
         air = as.numeric(str_sub(name, 18, 19))
-      ) %>%
+      ) |>
       select(air, featureid, huc8, mean_jul_temp)
   }),
   tar_target(predict_prob, {
-    predict_data %>%
+    predict_data |>
       mutate(
         prob = boot::inv.logit(predict(predict_model, predict_data, allow.new.levels = TRUE))
-      ) %>%
+      ) |>
       select(air, featureid, prob)
   }),
   tar_target(predict_max, {
-    predict_prob %>%
-      arrange(featureid, air) %>%
-      nest_by(featureid) %>%
+    predict_prob |>
+      arrange(featureid, air) |>
+      nest_by(featureid) |>
       mutate(
         max_air_occ30 = approx(data$prob, data$air, xout = 0.3, yleft = 6, yright = 0)$y,
         max_air_occ50 = approx(data$prob, data$air, xout = 0.5, yleft = 6, yright = 0)$y,
         max_air_occ70 = approx(data$prob, data$air, xout = 0.7, yleft = 6, yright = 0)$y
-      ) %>%
-      select(-data) %>%
+      ) |>
+      select(-data) |>
       ungroup()
   }),
   tar_target(predict_pred, {
-    huc_catchment %>%
-      select(featureid) %>%
+    huc_catchment |>
+      select(featureid) |>
       left_join(
-        predict_prob %>%
+        predict_prob |>
           mutate(
             name = case_when(
               air == 0 ~ "occ_current",
               TRUE ~ str_c("occ_air_", air)
             )
-          ) %>%
-          select(-air) %>%
+          ) |>
+          select(-air) |>
           pivot_wider(values_from = "prob"),
         by = "featureid"
-      ) %>%
+      ) |>
       full_join(predict_max, by = "featureid")
   }),
   tar_target(predict_pred_plot_hist, {
-    predict_pred %>%
-      pivot_longer(-featureid, values_drop_na = TRUE) %>%
+    predict_pred |>
+      pivot_longer(-featureid, values_drop_na = TRUE) |>
       ggplot(aes(value)) +
       geom_histogram() +
       facet_wrap(vars(name), scales = "free")
   }),
   tar_target(predict_pred_map_prob, {
     x <- predict_pred |>
-      filter(!is.na(occ_current)) %>%
+      filter(!is.na(occ_current)) |>
       select(featureid, starts_with("occ_")) |>
       pivot_longer(-featureid) |>
       mutate(name = fct_inorder(name))
-    gis_catchments %>%
-      sample_frac(0.1) %>%
-      inner_join(x, by = "featureid") %>%
+    gis_catchments |>
+      sample_frac(0.1) |>
+      inner_join(x, by = "featureid") |>
       ggplot() +
       geom_sf(aes(color = value), size = 0.25) +
       geom_sf(data = select(gis_states, -name), fill = NA, size = 0.5, color = "grey10") +
@@ -147,13 +152,13 @@ targets_predict <- list(
   }),
   tar_target(predict_pred_map_max, {
     x <- predict_pred |>
-      filter(!is.na(occ_current)) %>%
+      filter(!is.na(occ_current)) |>
       select(featureid, starts_with("max_")) |>
       pivot_longer(-featureid) |>
       mutate(name = fct_inorder(name))
-    gis_catchments %>%
-      sample_frac(0.1) %>%
-      inner_join(x, by = "featureid") %>%
+    gis_catchments |>
+      sample_frac(0.1) |>
+      inner_join(x, by = "featureid") |>
       ggplot() +
       geom_sf(aes(color = value), size = 0.25) +
       geom_sf(data = select(gis_states, -name), fill = NA, size = 0.5, color = "grey10") +

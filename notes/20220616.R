@@ -47,76 +47,76 @@ logistic <- glm(presence ~ mean_jul_temp, family = binomial(link = "logit"), dat
 df_gm <- tibble(
   name = c("full", "temp", "temp_ranef", "logistic"),
   model = list(gm_full, gm_temp, gm_temp_ranef, logistic)
-) %>%
-  rowwise() %>%
+) |>
+  rowwise() |>
   mutate(
     pred = list(create_model_pred(inp_split_std, model)),
     gof = list(create_model_gof(pred))
-  ) %>%
-  unnest(gof) %>%
-  select(-pred) %>%
-  rowwise() %>%
+  ) |>
+  unnest(gof) |>
+  select(-pred) |>
+  rowwise() |>
   mutate(
     accuracy = list(pivot_wider(enframe(cm$overall)))
-  ) %>%
-  unnest(accuracy) %>%
-  rowwise() %>%
+  ) |>
+  unnest(accuracy) |>
+  rowwise() |>
   mutate(
     by_class = list(pivot_wider(enframe(cm$byClass)))
-  ) %>%
-  unnest(by_class) %>%
+  ) |>
+  unnest(by_class) |>
   clean_names()
 
-df_gm %>%
-  arrange(partition, name) %>%
+df_gm |>
+  arrange(partition, name) |>
   select(name, partition, auc, accuracy, sensitivity, specificity)
 
 anova(gm_temp_ranef, gm_temp)
 
-df_pred <- df_gm %>%
-  select(partition, name, data) %>%
-  unnest(data) %>%
-  select(name, partition, featureid, presence, pred) %>%
-  pivot_wider(values_from = "pred") %>%
+df_pred <- df_gm |>
+  select(partition, name, data) |>
+  unnest(data) |>
+  select(name, partition, featureid, presence, pred) |>
+  pivot_wider(values_from = "pred") |>
   mutate(`temp_ranef-temp` = temp_ranef - temp)
 
-gis_catchments %>%
-  inner_join(df_pred, by = "featureid") %>%
-  filter(abs(`temp_ranef-temp`) > 0.2) %>%
+gis_catchments |>
+  inner_join(df_pred, by = "featureid") |>
+  filter(abs(`temp_ranef-temp`) > 0.2) |>
   ggplot() +
   geom_sf(aes(color = `temp_ranef-temp`)) +
   geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
   scale_color_viridis_c() +
   facet_wrap(vars(partition))
 
-gis_catchments %>%
-  inner_join(df_pred, by = "featureid") %>%
-  mutate(across(c(temp, temp_ranef), ~ if_else(.x > 0.5, "T", "F"))) %>%
-  filter(temp != temp_ranef) %>%
+gis_catchments |>
+  inner_join(df_pred, by = "featureid") |>
+  mutate(across(c(temp, temp_ranef), ~ if_else(.x > 0.5, "T", "F"))) |>
+  filter(temp != temp_ranef) |>
   ggplot() +
   geom_sf(aes(color = str_c(temp, temp_ranef))) +
   geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
   scale_color_brewer(palette = "Set1") +
   facet_wrap(vars(partition))
 
-gis_catchments %>%
-  inner_join(df_pred, by = "featureid") %>%
-  mutate(across(c(full, temp), ~ if_else(.x > 0.5, "T", "F"))) %>%
-  filter(full != temp) %>%
+gis_catchments |>
+  inner_join(df_pred, by = "featureid") |>
+  mutate(across(c(full, temp), ~ if_else(.x > 0.5, "T", "F"))) |>
+  filter(full != temp) |>
   ggplot() +
   geom_sf(aes(color = str_c(full, temp))) +
   geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
   scale_color_brewer(palette = "Set1") +
   facet_wrap(vars(partition))
 
-df_gm %>%
-  filter(name == "temp", partition == "calib") %>%
+df_gm |>
+  filter(name == "temp", partition == "calib") |>
   pull(cm)
 
 # roc curves
-df_gm %>%
-  select(name, partition, roc) %>%
-  unnest(roc) %>%
+df_gm |>
+  select(name, partition, roc) |>
+  unnest(roc) |>
   ggplot(aes(fpr, tpr)) +
   geom_abline(linetype = "dashed") +
   geom_line(aes(color = name)) +
@@ -131,34 +131,34 @@ df_gm %>%
   )
 
 # fixed effects
-df_gm %>%
-  filter(partition == "calib") %>%
-  rowwise() %>%
+df_gm |>
+  filter(partition == "calib") |>
+  rowwise() |>
   mutate(
     plot = list({
       plot_model(model, type = "eff", terms = glue("mean_jul_temp [all]")) +
         ggtitle(name)
     })
-  ) %>%
-  pull(plot) %>%
+  ) |>
+  pull(plot) |>
   wrap_plots()
 
 # T/F classes
-gis_catchments %>%
+gis_catchments |>
   inner_join(
-    df_gm %>%
+    df_gm |>
       select(
         name,
         partition,
         data
-      ) %>%
-      filter(name == "full") %>%
+      ) |>
+      filter(name == "full") |>
       unnest(data),
     by = "featureid"
-  ) %>%
+  ) |>
   mutate(
     result = ordered(result, levels = c("TP", "TN", "FP", "FN"))
-  ) %>%
+  ) |>
   ggplot() +
   geom_sf(aes(color = result), alpha = 1, size = 0.5) +
   geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
