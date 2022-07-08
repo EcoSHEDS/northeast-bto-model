@@ -19,7 +19,13 @@ tar_read(gis_huc8_poly) |>
   st_transform("EPSG:4326") |> 
   ggplot() +
   geom_sf(color = "deepskyblue", fill = NA) +
-  geom_sf(data = tar_read(gis_states), fill = NA)
+  geom_sf(data = tar_read(gis_states), fill = NA) +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
+      )
 ```
 
 ## Observation Data
