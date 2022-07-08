@@ -1,21 +1,19 @@
-SHEDS Brook Trout Occupancy Model
-=================================
+EcoSHEDS Northeast Brook Trout Occupancy Model
+==============================================
+
+Developed and maintained by
 
 Jeffrey D. Walker, PhD  
 [Walker Environmental Research LLC](https://walkerenvres.com/)
 
-Ben Letcher, PhD  
-[USGS](https://www.lsc.usgs.gov/?q=cafb-research), [UMass](https://eco.umass.edu/people/faculty/letcher-ben/)
+Benjamin Letcher, PhD  
+[USGS](https://www.usgs.gov/staff-profiles/benjamin-h-letcher)
 
-Dan Hocking, PhD  
-[Frostburg State University](http://hockinglab.weebly.com/)
-
-*Adapted from*: [Conte-Ecology/Northeast_Bkt_Occupancy](https://github.com/Conte-Ecology/Northeast_Bkt_Occupancy).
+This model is developed and maintained as part of [EcoSHEDS](https://www.usgs.gov/apps/ecosheds/).
 
 ## About
 
-This repo contains the source code for the [SHEDS Brook Trout Occupancy model](http://ecosheds.org/models/brook-trout-occupancy/latest).
-
+This repo contains the source code for the [EcoSHEDS Northeast Brook Trout Occupancy Model](http://ecosheds.org/models/brook-trout-occupancy/latest).
 
 ## Quick Start
 

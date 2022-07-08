@@ -3,7 +3,7 @@ tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "
 targets_model <- list(
   tar_target(model_formula, presence ~ mean_jul_temp + (1 | huc8)),
   tar_target(model_gm, {
-    model_data <- filter(inp_split_std, partition == "calib")
+    model_data <- filter(inp_split, partition == "calib")
     glmer(
       model_formula,
       family = binomial(link = "logit"),
@@ -25,7 +25,7 @@ targets_model <- list(
     wrap_plots(p)
   }),
   tar_target(model_gm_plot_re, {
-    plot_model(model_gm, type = "re")
+    plot_model(model_gm, type = "re", sort.est = "(Intercept)")
   }),
 
   tar_target(model_ranef, {
@@ -47,6 +47,7 @@ targets_model <- list(
         model_ranef,
         by = "huc8"
       ) %>%
+      st_transform("EPSG:4326") |>
       ggplot() +
       geom_sf(aes(fill = value)) +
       geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
@@ -54,7 +55,7 @@ targets_model <- list(
       facet_wrap(vars(name))
   }),
 
-  tar_target(model_pred, create_model_pred(inp_split_std, model_gm)),
+  tar_target(model_pred, create_model_pred(inp_split, model_gm)),
   tar_target(model_pred_map, {
     gis_catchments %>%
       inner_join(
@@ -84,13 +85,16 @@ targets_model <- list(
       ggplot(aes(fpr, tpr)) +
       geom_abline(linetype = "dashed") +
       geom_line(aes(color = partition)) +
-      scale_color_brewer(palette = "Set1") +
+      scale_color_brewer("Split", palette = "Set1", labels = c(
+        "calib" = "Calibration",
+        "valid" = "Validation"
+      )) +
       coord_fixed() +
       labs(
-        x = "FPR",
-        y = "TPR",
+        x = "False Positive Rate (FPR)",
+        y = "True Positive Rate (TPR)",
         title = "ROC Curves",
-        subtitle = glue("AUC = {round(auc[['calib']], 3)} (calib), {round(auc[['valid']], 3)} (valid)")
+        subtitle = glue("AUC: Calibration = {round(auc[['calib']], 3)}, Validation = {round(auc[['valid']], 3)}")
       )
   }),
   tar_target(model_gof_map_partition_TFNP, {

@@ -1,302 +1,89 @@
 # Calibration and Validation
 
-```{r, echo = FALSE, warning = FALSE, message = FALSE}
-library(AUC)
-library(boot)
-library(lme4)
-library(tidyverse)
-library(gridExtra)
-library(ggeffects)
-library(sjPlot)
-source("../src/functions.R")
+## Dataset Split
 
-config <- load_config("../")
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+To calibrate and validate the model, the observed dataset of presence/absence by catchment (see [Observation Data]) was randomly split using `r scales::percent(tar_read(inp_split_frac_calib), accuracy = 1)` of the catchments for calibration and `r scales::percent(1 - tar_read(inp_split_frac_calib), accuracy = 1)` for validation.
 
-theme_set(theme_bw())
-
-inp <- read_rds(file.path(config$wd, "model-input.rds"))
-calib <- read_rds(file.path(config$wd, "model-calib.rds"))
-glmm <- calib$model
-valid <- read_rds(file.path(config$wd, "model-valid.rds"))
-
-variable_labels <- c(
-  "(Intercept)" = "Intercept",
-  "AreaSqKM" = "Drainage Area (km2)",
-  "summer_prcp_mm" = "Summer Precip (mm)",
-  "mean_jul_temp" = "Mean July Temp (degC)",
-  "forest" = "% Forest",
-  "allonnet" = "% Impounded Drainage Area",
-  "devel_hi" = "% Developed, High Intensity",
-  "agriculture" = "% Agriculture",
-  "AreaSqKM:summer_prcp_mm" = "(% Agriculture:Summer Precip)",
-  "mean_jul_temp:forest" = "(Mean July Temp:% Forest)",
-  "summer_prcp_mm:forest" = "(Summer Precip:% Forest)"
-)
-
+```{r calib-map, fig.height=3, fig.cap="Calibration and Validation Splits"}
+tar_read(inp_map_split)
 ```
 
-## Parameter Estimates
-
-### Fixed Effects
-
-```{r}
-summary(glmm)$coefficients %>% 
-  as.data.frame() %>% 
-  rownames_to_column() %>%
+```{r calib-split}
+tar_read(inp_split_std) |> 
   mutate(
-    rowname = plyr::revalue(rowname, variable_labels)
-  ) %>% 
-  rename(Variable = rowname, `z Value` = `z value`, `p Value` = `Pr(>|z|)`) %>% 
-  knitr::kable(digits = 3)
-```
-
-```{r, fig.width=8, fig.height=5}
-plot_model(glmm, title = "Fixed Effects", order.terms = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)) +
-  scale_x_discrete(labels = variable_labels)
-```
-
-#### Marginal Effect Plots
-
-```{r}
-unstandardize <- function (v, x) {
-  var_std <- inp$var_std %>% 
-    filter(name == v) %>% 
-    as.list()
-  
-  var_std$mean + var_std$sd * x
-}
-standardize <- function (v, x) {
-  var_std <- inp$var_std %>% 
-    filter(name == v) %>% 
-    as.list()
-  
-  (x - var_std$mean) / var_std$sd
-}
-make_term <- function (v, x_range) {
-  var_std <- inp$var_std %>% 
-    filter(name == v) %>% 
-    as.list()
-  paste0(v, " [", paste(standardize(v, x_range), collapse = ","), "]")
-}
-plot_single_effect <- function(v, x_range) {
-  ggpredict(glmm, terms = make_term(v, x_range)) %>% 
-    mutate(
-      x2 = unstandardize(v, x)
-    ) %>% 
-    ggplot(aes(x2, predicted)) +
-    geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.25) +
-    geom_line() +
-    ylim(0, 1)
-}
-```
-
-```{r, fig.width=6, fig.height=4}
-# range(inp$calib$data$agriculture)
-plot_single_effect("agriculture", seq(0, 100, by = 1)) +
-  labs(
-    x = "% Agriculture",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: % Agriculture"
-  )
-```
-
-```{r, fig.width=6, fig.height=4}
-# range(inp$calib$data$allonnet)
-plot_single_effect("allonnet", seq(0, 100, by = 1)) +
-  labs(
-    x = "% Impounded Drainage Area",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: % Impounded Drainage Area"
-  )
-```
-
-```{r, fig.width=6, fig.height=4}
-# range(inp$calib$data$devel_hi)
-plot_single_effect("devel_hi", seq(0, 100, by = 1)) +
-  labs(
-    x = "% Developed, High Intensity",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: % Developed, High Intensity"
-  )
-```
-
-```{r, fig.width=6, fig.height=4}
-# range(inp$calib$data$mean_jul_temp)
-# range(inp$calib$data$forest)
-ggpredict(glmm, terms = c(make_term("mean_jul_temp", seq(12, 27, by = 0.1)), make_term("forest", c(0, 50, 100)))) %>% 
+    partition = if_else(partition == "calib", "Calibration", "Validation")
+  ) |> 
+  group_by(Partition = partition) |> 
+  summarise(
+    Presence = sum(presence),
+    Absense = n() - Presence
+  ) |> 
+  adorn_totals(where = c("row", "col")) |> 
   mutate(
-    x2 = unstandardize("mean_jul_temp", x),
-    group2 = round(unstandardize("forest", parse_number(as.character(group))), 2)
-  ) %>% 
-  ggplot(aes(x2, predicted)) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
-  geom_line(aes(color = factor(group2))) +
-  scale_color_discrete(name = "% Forest") +
-  scale_fill_discrete(name = "% Forest") +
-  ylim(0, 1) +
-  labs(
-    x = "Mean July Stream Temperature (degC)",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: Mean July Stream Temperature",
-    subtitle = "Interaction Term: % Forest"
-  ) +
-  theme(
-    legend.position = c(0.99, 0.99),
-    legend.justification = c(1, 1)
-  )
+    `% Presence` = scales::percent(Presence / Total, accuracy = 0.1),
+    across(-c(Partition, `% Presence`), scales::comma)
+  ) |> 
+  knitr::kable(align = "lrrrr")
 ```
 
-```{r, fig.width=6, fig.height=4}
-# range(inp$calib$data$AreaSqKM)
-# range(inp$calib$data$summer_prcp_mm)
-ggpredict(glmm, terms = c(make_term("AreaSqKM", seq(0, 200, by = 20)), make_term("summer_prcp_mm", c(250, 350, 450)))) %>% 
-  mutate(
-    x2 = unstandardize("AreaSqKM", x),
-    group2 = round(unstandardize("summer_prcp_mm", parse_number(as.character(group))), 2)
-  ) %>% 
-  ggplot(aes(x2, predicted)) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
-  geom_line(aes(color = factor(group2))) +
-  scale_color_discrete(name = "Summer Precip (mm)") +
-  scale_fill_discrete(name = "Summer Precip (mm)") +
-  ylim(0, 1) +
-  labs(
-    x = "Drainage Area (sq. km.)",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: Drainage Area",
-    subtitle = "Interaction Term: Summer Precip"
-  ) +
-  theme(
-    legend.position = c(0.01, 0.01),
-    legend.justification = c(0, 0)
-  )
+## Calibration
+
+The following output summarizes the fitted model using the calibration subset.
+
+```{r calib-summary}
+tar_load(model_gm)
+summary(model_gm)
 ```
 
-```{r, fig.width=10, fig.height=4}
-# range(inp$calib$data$summer_prcp_mm)
-# range(inp$calib$data$AreaSqKM)
-# range(inp$calib$data$forest)
-ggpredict(glmm, terms = c(make_term("summer_prcp_mm", seq(240, 470, by = 10)), make_term("AreaSqKM", c(5, 20, 50)), make_term("forest", c(0, 50, 100)))) %>% 
-  mutate(
-    x2 = unstandardize("summer_prcp_mm", x),
-    group2 = round(unstandardize("AreaSqKM", parse_number(as.character(group))), 2),
-    `% Forest` = round(unstandardize("forest", parse_number(as.character(facet))), 2)
-  ) %>% 
-  ggplot(aes(x2, predicted)) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
-  geom_line(aes(color = factor(group2))) +
-  scale_color_discrete(name = "Drainage Area\n(km2)") +
-  scale_fill_discrete(name = "Drainage Area\n(km2)") +
-  ylim(0, 1) +
-  facet_wrap(vars(`% Forest`), nrow = 1, labeller = label_both) +
-  labs(
-    x = "Summer Precip (mm)",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: Summer Precip (mm)",
-    subtitle = "Interaction Terms: Drainage Area, % Forest"
-  )
+The estimated fixed effect for mean July temp (`mean_jul_temp`) was `r scales::number(model_gm@beta[2], accuracy = 0.01)`. Because the estimated value is negative, the occupancy probability is higher at lower stream temperatures. Figure @\ref(fig:calib-fixed) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects).
+
+```{r calib-fixef, fig.cap="Marginal Effects Plot for Mean July Stream Temperature."}
+tar_read(model_gm_plot_eff) +
+  labs(x = "Mean July Stream Temp (degC)", y = "Occupancy Probability", title = NULL)
 ```
 
+The random effect intercept varies by HUC8 basin. Basins with higher values tend to have higher occupancy probabilities for a given mean July stream temperature. Some HUC8 basins do not have an estimated value because there was no observations with the calibration dataset.
 
-```{r, fig.width=10, fig.height=4}
-# range(inp$calib$data$forest)
-# range(inp$calib$data$mean_jul_temp)
-# range(inp$calib$data$summer_prcp_mm)
-ggpredict(glmm, terms = c(make_term("forest", seq(0, 100, by = 1)), make_term("mean_jul_temp", c(16, 18, 20, 22, 24)), make_term("summer_prcp_mm", c(250, 350, 450)))) %>% 
-  mutate(
-    x2 = unstandardize("forest", x),
-    group2 = round(unstandardize("mean_jul_temp", parse_number(as.character(group))), 2),
-    `Summer Precip (mm)` = round(unstandardize("summer_prcp_mm", parse_number(as.character(facet))), 2)
-  ) %>% 
-  ggplot(aes(x2, predicted)) +
-  geom_ribbon(aes(ymin = conf.low, ymax = conf.high, fill = factor(group2)), alpha = 0.25) +
-  geom_line(aes(color = factor(group2))) +
-  scale_color_discrete(name = "Mean July\nTemp (degC)") +
-  scale_fill_discrete(name = "Mean July\nTemp (degC)") +
-  ylim(0, 1) +
-  facet_wrap(vars(`Summer Precip (mm)`), nrow = 1, labeller = label_both) +
-  labs(
-    x = "% Forest",
-    y = "Predicted Probability of Presence",
-    title = "Fixed Effect: % Forest",
-    subtitle = "Interaction Terms: Summer Precip, Mean July Temp"
-  )
+```{r calib-ranef, fig.cap="Random Effect Intercept by HUC8 Basin"}
+tar_read(model_ranef_map)
 ```
 
-### Random Effects
+The model accuracy and performance is summarized by a series of metrics computed from the confusion matrix, which contains the total number of true positives, true negatives, false positives, and false negatives. In the 2x2 table at the top of the following output, the columns (`Reference`) refer to the observed condition in each catchment (`1` = presence, `0` = absence), while the rows (`Prediction`) refer to the predicted condition. The predicted probabilities were converted to presence/absence using a 50% cutoff. The remaining output provides a series of performance metrics computed from the confusion matrix using the `confusionMatrix()` of the `caret` package [@kuhn2022]. See the [help page](https://rdrr.io/cran/caret/man/confusionMatrix.html) for that function, as well as [this Wikipedia article](https://en.wikipedia.org/wiki/Confusion_matrix), for definitions of each metric. 
 
-Distribution of each random effect over all HUC10's. 
-
-```{r, fig.width=10, fig.height=10}
-ranef(glmm)$huc10 %>%
-  as.data.frame() %>% 
-  rownames_to_column(var = "huc10") %>% 
-  gather(var, value, -huc10) %>% 
-  ggplot(aes(value)) +
-  geom_histogram() +
-  labs(
-    x = "Effect Size",
-    y = "Count (# HUC10s)"
-  ) +
-  facet_wrap(~ var, scales = "free", ncol = 2)
+```{r calib-cm}
+tar_load(model_confusion)
+model_confusion$calib
 ```
 
+## Validation
 
-## Goodness-of-Fit
+Using the calibrated model, predicted probabilities were computed using the indendent validation dataset. 
 
-```{r}
-stat_labels <- c(
-  "n" = "# Catchments",
-  "sens" = "Sensitivity",
-  "spec" = "Specificity",
-  "fnr" = "False Negative Rate",
-  "fpr" = "False Positive Rate",
-  "acc" = "Accuracy",
-  "err" = "Error Rate",
-  "auc" = "AUC"
-)
+The confusion matrix for the validation dataset indicates slightly lower accuracy (`r round(model_confusion$calib$overall[["Accuracy"]], 2)` vs `r round(model_confusion$valid$overall[["Accuracy"]], 2)`), but overall comparable performance. These results suggest that the model does not suffer from overfitting.
 
-bind_cols(
+```{r calib-valid-cm}
+model_confusion$valid
+```
+The following table compares the performance metrics between the two subsets.
+
+```{r calib-compare}
+map_df(c("calib", "valid"), function (split) {
+  x <- model_confusion[[split]]
   tibble(
-    dataset = c("calibration", "validation")
-  ),
-  bind_rows(calib$pred$stats, valid$pred$stats)
-) %>%
-  mutate_at(vars(n), scales::comma) %>% 
-  mutate_at(
-    vars(
-      sens, spec, acc, auc, err, fpr, fnr
-    ),
-    ~ sprintf("%.3f", .)
-  ) %>% 
-  gather(stat, value, -dataset) %>% 
-  spread(dataset, value) %>% 
-  mutate(
-    stat = factor(stat, ordered = TRUE, levels = names(stat_labels))
-  ) %>% 
-  arrange(stat) %>% 
-  mutate(
-    stat_label = plyr::revalue(stat, stat_labels)
-  ) %>% 
-  select(-stat) %>% 
-  select(stat_label, calibration, validation) %>% 
-  knitr::kable(
-    align = "lrr", 
-    col.names = c("", "Calibration", "Validation"),
-    caption = "Summary statistics of model calibration and validation"
+    name = split,
+    Metric = c("Accuracy", names(x$byClass)),
+    value = c(x$overall["Accuracy"], x$byClass)
   )
+}) |> 
+  mutate(value = round(value, 3)) |> 
+  pivot_wider() |> 
+  rename(Calibration = calib, Validation = valid) |> 
+  knitr::kable(align = "lrr")
 ```
 
+Lastly, [Receiver Operator Characteristic (ROC)](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curves and Area Under the Curve (AUC) values also shows comparable performance between the calibration and validation subsets.
 
-### Calibration
-
-```{r, fig.width=10, fig.height=10}
-plot_auc(calib$pred$y_pred, calib$pred$y_obs)
+```{r calib-roc, fig.cap="ROC Curves for Calibration and Validation"}
+tar_read(model_gof_plot_roc_curves)
 ```
 
-### Validation
-
-```{r, fig.width=10, fig.height=10}
-plot_auc(valid$pred$y_pred, valid$pred$y_obs)
-```

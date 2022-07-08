@@ -1,3 +1,0 @@
-# Theory {#theory}
-
-The brook trout occupancy model is a nested hierarchical Bayesian model that predicts probability of occupancy based on catchment characteristics and climate conditions.

@@ -9,37 +9,16 @@ targets_predict <- list(
       mutate_at(vars(starts_with("huc")), as.factor) %>%
       select(featureid, presence, starts_with("huc"), mean_jul_temp)
   }),
-  tar_target(predict_inp_complete, {
+  tar_target(predict_inp, {
     predict_inp_all %>%
-      filter(complete.cases(.))
-  }),
-  tar_target(predict_inp_variable_std, {
-    predict_inp_complete %>%
-      pivot_longer(-c(featureid, presence, starts_with("huc"))) %>%
-      group_by(name) %>%
-      summarize(
-        mean = mean(value),
-        sd = sd(value),
-        .groups = "drop"
-      )
-  }),
-  tar_target(predict_inp_std, {
-    predict_inp_complete %>%
-      pivot_longer(-c(featureid, presence, starts_with("huc"))) %>%
-      left_join(predict_inp_variable_std, by = "name") %>%
-      mutate(
-        value = (value - mean) / sd
-      ) %>%
-      select(-mean, -sd) %>%
-      pivot_wider() %>%
-      arrange(huc8, featureid) %>%
-      mutate(partition = "calib", .before = 1)
+      filter(complete.cases(.)) |>
+      mutate(partition = "pred")
   }),
   tar_target(predict_model, {
     glmer(
       model_formula,
       family = binomial(link = "logit"),
-      data = predict_inp_std,
+      data = predict_inp,
       control = glmerControl(optimizer = "bobyqa")
     )
   }),
@@ -58,9 +37,25 @@ targets_predict <- list(
     wrap_plots(p)
   }),
 
-  tar_target(predict_model_pred, create_model_pred(predict_inp_std, predict_model)),
+  tar_target(predict_model_pred, create_model_pred(predict_inp, predict_model)),
   tar_target(predict_model_gof, create_model_gof(predict_model_pred)),
-
+  tar_target(predict_model_ranef, {
+    as_tibble(ranef(predict_model)$huc8, rownames = "huc8") %>%
+      pivot_longer(-huc8)
+  }),
+  tar_target(predict_model_ranef_map, {
+    gis_huc8_poly %>%
+      inner_join(
+        predict_model_ranef,
+        by = "huc8"
+      ) %>%
+      st_transform("EPSG:4326") |>
+      ggplot() +
+      geom_sf(aes(fill = value)) +
+      geom_sf(data = rename(gis_states, name_ = name), fill = NA, size = 0.5) +
+      scale_fill_viridis_c() +
+      facet_wrap(vars(name))
+  }),
   tar_target(predict_data, {
     huc_catchment %>%
       select(featureid, huc8) %>%
@@ -79,20 +74,10 @@ targets_predict <- list(
       ) %>%
       select(air, featureid, huc8, mean_jul_temp)
   }),
-  tar_target(predict_data_std, {
-    predict_data %>%
-      pivot_longer(-c(air, featureid, starts_with("huc"))) %>%
-      left_join(predict_inp_variable_std, by = "name") %>%
-      mutate(
-        value = (value - mean) / sd
-      ) %>%
-      select(-mean, -sd) %>%
-      pivot_wider()
-  }),
   tar_target(predict_prob, {
-    predict_data_std %>%
+    predict_data %>%
       mutate(
-        prob = boot::inv.logit(predict(predict_model, predict_data_std, allow.new.levels = TRUE))
+        prob = boot::inv.logit(predict(predict_model, predict_data, allow.new.levels = TRUE))
       ) %>%
       select(air, featureid, prob)
   }),
@@ -133,13 +118,80 @@ targets_predict <- list(
       facet_wrap(vars(name), scales = "free")
   }),
   tar_target(predict_pred_map_prob, {
-    gis_catchments %>%
-      left_join(select(predict_pred, featureid, occ_current), by = "featureid") %>%
+    x <- predict_pred |>
       filter(!is.na(occ_current)) %>%
+      select(featureid, starts_with("occ_")) |>
+      pivot_longer(-featureid) |>
+      mutate(name = fct_inorder(name))
+    gis_catchments %>%
       sample_frac(0.1) %>%
+      inner_join(x, by = "featureid") %>%
       ggplot() +
-      geom_sf(aes(color = occ_current), size = 1) +
-      scale_color_viridis_c(limits = c(0, 1)) +
-      labs(title = "Current Occupancy Probability")
+      geom_sf(aes(color = value), size = 0.25) +
+      geom_sf(data = select(gis_states, -name), fill = NA, size = 0.5, color = "grey10") +
+      scale_color_viridis_c("Occupancy\nProbability", limits = c(0, 1)) +
+      facet_wrap(vars(name), ncol = 2, labeller = labeller(
+        name = c(
+          "occ_current" = "Historical",
+          "occ_air_2" = "+2 degC Air Temp",
+          "occ_air_4" = "+4 degC Air Temp",
+          "occ_air_6" = "+6 degC Air Temp"
+        )
+      )) +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
+      )
+  }),
+  tar_target(predict_pred_map_max, {
+    x <- predict_pred |>
+      filter(!is.na(occ_current)) %>%
+      select(featureid, starts_with("max_")) |>
+      pivot_longer(-featureid) |>
+      mutate(name = fct_inorder(name))
+    gis_catchments %>%
+      sample_frac(0.1) %>%
+      inner_join(x, by = "featureid") %>%
+      ggplot() +
+      geom_sf(aes(color = value), size = 0.25) +
+      geom_sf(data = select(gis_states, -name), fill = NA, size = 0.5, color = "grey10") +
+      scale_color_viridis_c("Max Air Temp\nIncrease (degC)", limits = c(0, 6)) +
+      facet_wrap(vars(name), ncol = 2, labeller = labeller(
+        name = c(
+          "max_air_occ30" = "To Achieve 30% Occupancy",
+          "max_air_occ50" = "To Achieve 50% Occupancy",
+          "max_air_occ70" = "To Achieve 70% Occupancy"
+        )
+      )) +
+      labs(caption = "Note: Max Air Temp. Increases limited to a maximum value of 6.") +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
+      )
+  }),
+  tar_target(predict_model_confusion, predict_model_gof$cm[[1]]),
+  tar_target(predict_model_gof_compare, {
+    x_predict <- tibble(
+      name = "pred",
+      stat = c("Accuracy", names(predict_model_confusion$byClass)),
+      value = c(predict_model_confusion$overall["Accuracy"], predict_model_confusion$byClass)
+    )
+    map_df(c("calib", "valid"), function (split) {
+      x <- tar_read(model_confusion)[[split]]
+      tibble(
+        name = split,
+        stat = c("Accuracy", names(x$byClass)),
+        value = c(x$overall["Accuracy"], x$byClass)
+      )
+    }) |>
+      bind_rows(
+        x_predict
+      ) |>
+      mutate(value = round(value, 3)) |>
+      pivot_wider()
   })
 )

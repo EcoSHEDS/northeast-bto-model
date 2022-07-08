@@ -27,5 +27,16 @@ targets_temp <- list(
       select(-version) %>%
       pivot_wider(names_from = "variable") %>%
       relocate(featureid)
+  }),
+  tar_target(temp_model_catchments, {
+    gis_catchments |>
+      left_join(temp_model, by = "featureid")
+  }),
+  tar_target(temp_model_catchments_map, {
+    temp_model_catchments |>
+      filter(!is.na(mean_jul_temp)) |>
+      ggplot() +
+      geom_sf(aes(color = mean_jul_temp), size = 0.2) +
+      scale_color_viridis_c("Mean July Temp\n(degC)")
   })
 )

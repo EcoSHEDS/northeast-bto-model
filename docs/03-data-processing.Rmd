@@ -1,3 +1,0 @@
-# Data Processing {#data-processing}
-
-Work in progress...

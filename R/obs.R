@@ -90,8 +90,7 @@ targets_obs <- list(
       ) +
       guides(
         color = guide_legend(override.aes = list(alpha = 1, size = 1))
-      ) +
-      labs(title = "Regional Dataset")
+      )
   }),
   tar_target(obs_regional_map_ma, {
     obs_regional_catchments %>%
@@ -194,5 +193,55 @@ targets_obs <- list(
     obs_presence_all %>%
       group_by(featureid) %>%
       summarise(presence = max(presence))
+  }),
+  tar_target(obs_presence_map, {
+    obs_presence_states %>%
+      ggplot() +
+      geom_sf(aes(color = factor(presence)), alpha = 0.5, size = 0.5) +
+      geom_sf(data = gis_states, fill = NA) +
+      scale_color_manual(
+        NULL,
+        values = c("0" = "orangered", "1" = "deepskyblue"),
+        labels = c("0" = "Absence", "1" = "Presence")
+      ) +
+      guides(
+        color = guide_legend(override.aes = list(alpha = 1, size = 1))
+      )
+  }),
+  tar_target(obs_presence_states, {
+    state_levels <- c("ME", "NH", "VT", "MA", "RI", "CT", "NY", "NJ", "PA", "MD", "WV", "VA")
+    gis_catchments |>
+      inner_join(obs_presence, by = "featureid") |>
+      st_intersection(select(gis_states, state = stusps)) |>
+      mutate(
+        state = ordered(state, levels = state_levels)
+      )
+  }),
+  tar_target(obs_presence_states_plot, {
+    p1 <- obs_presence_states %>%
+      ggplot(aes(state)) +
+      geom_bar(aes(fill = factor(presence))) +
+      scale_fill_manual(
+        NULL,
+        values = c("0" = "orangered", "1" = "deepskyblue"),
+        labels = c("0" = "Absence", "1" = "Presence")
+      ) +
+      scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+      labs(x = "State", y = "# Catchments")
+
+    p2 <- obs_presence_states %>%
+      ggplot(aes(state)) +
+      geom_bar(aes(fill = factor(presence)), position = "fill") +
+      scale_fill_manual(
+        NULL,
+        values = c("0" = "orangered", "1" = "deepskyblue"),
+        labels = c("0" = "Absence", "1" = "Presence")
+      ) +
+      scale_y_continuous(breaks = scales::pretty_breaks(), labels = scales::percent, expand = expansion()) +
+      labs(x = "State", y = "% Catchments")
+
+    wrap_plots(p1, p2, nrow = 1) +
+      plot_annotation(title = "Presence/Absence Summary by State") +
+      plot_layout(guides = "collect")
   })
 )

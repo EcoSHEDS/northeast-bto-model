@@ -1,3 +1,70 @@
-# Data Sources {#data-sources}
+# Data Sources
 
-Work in progress...
+## Catchment Delineation
+
+The model domain was based on the [EcoSHEDS Northeast Catchment Delineation](https://conte-ecology.github.io/shedsGisData/#the-national-hydrography-dataset-high-resolution-delineation-version-2-nhdhrdv2), which is also used for the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.org/models/stream-temperature/latest/). This delineation was created in 2014-2015 to provide a high resolution catchment delineation across the northeast that was spatially consistent over the entire region. The EcoSHEDS delineation was created prior to the completion of the [USGS NHDPlus High Resolution](https://www.usgs.gov/national-hydrography/nhdplus-high-resolution) dataset. Unfortunately, the two delineations are not directly relatable.
+
+Figure \@ref(fig:data-catchments) shows the extent of this delineation, which covers the northeast and mid-Atlantic portions of the eastern U.S. from Maine to Virginia. The delineation includes approximately 450,000 individual catchments, with an mean surface area of 1.6 km^2^.
+
+```{r data-catchments, fig.cap="Hydrologic Regions of EcoSHEDS Northeast Catchment Delineation"}
+knitr::include_graphics("img/hydrologic-regions.png", dpi = 100)
+```
+
+## HUC8 Basins
+
+The [8-digit Hydrologic Unit Code (HUC8)](https://water.usgs.gov/GIS/huc.html) basins were used to account for regional variations in brook trout occupancy that was not explained by stream temperature data (see [Model Structure]). Figure \@ref(fig:data-huc8) shows the boundary of each HUC8 basin.
+
+```{r data-huc8, fig.cap="HUC8 Basins"}
+tar_read(gis_huc8_poly) |> 
+  st_transform("EPSG:4326") |> 
+  ggplot() +
+  geom_sf(color = "deepskyblue", fill = NA) +
+  geom_sf(data = tar_read(gis_states), fill = NA)
+```
+
+## Observation Data
+
+Observed presence/absence data of eastern brook trout was gathered from multiple state agencies.
+
+The raw presence/absence observations were aggregated by catchment for input to the model. If there were multiple observations in a single catchment (either at different locations or at different times), then the catchment was assigned to the `presence` category if there was at least presence among those observations. If all observations were absences, then the catchment was assigned to `absence`.
+
+The follow map, figures, and table provide a summary of the observed catchment presence/absence by state.
+
+```{r data-obs-map, fig.cap="Map of Presence/Absence by Catchment"}
+tar_read(obs_presence_map)
+```
+
+```{r data-obs-state-plot, fig.width=8, fig.height=3, fig.cap="Presence/Absence Catchment Totals by State"}
+tar_read(obs_presence_states_plot)
+```
+
+```{r data-obs-table}
+tar_read(obs_presence_states) |> 
+  st_drop_geometry() |> 
+  group_by(State = state) |> 
+  summarise(
+    Presence = sum(presence),
+    Absence = n() - Presence,
+    .groups = "drop"
+  ) |> 
+  adorn_totals(where = c("row", "col")) |> 
+  mutate(
+    `% Presence` = scales::percent(Presence / Total, accuracy = 0.1),
+    across(-c(State, `% Presence`), scales::comma)
+  ) |> 
+  knitr::kable(align = 'lrrrr')
+```
+
+## Stream Temperature
+
+The primary input to the brook trout occupancy model is the estimated mean July stream temperature of each catchment. These estimates were generated using the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.org/models/stream-temperature/latest/). The estimated value for each catchment represents the long-term mean July stream temperature computed over all years since 1980. Estimates are only generated for catchments with total cumulative drainage areas less than 200 km^2^ due to the great complexity, anthropogenic impacts, and non-linearities associated with temperature dynamics in larger rivers.
+
+The stream temperature model is based on a linear mixed effects framework that accounts for spatial and temporal correlations using a hierachical Bayesian structure. The primary input variables include air temperature, precipitation, land use (forest, agriculture, high development), impounded drainage area, and total drainage area. See the [stream temperature model documentation](https://ecosheds.org/models/stream-temperature/latest/) for more information.
+
+Figure \@ref(fig:data-temp) shows the estimated mean July stream temperature for each catchment.
+
+```{r data-temp, fig.cap="Estimated Mean July Stream Temperature by Catchment"}
+tar_read(temp_model_catchments_map)
+```
+
+

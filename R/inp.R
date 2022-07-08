@@ -19,7 +19,7 @@ targets_inp <- list(
     huc10s <- unique(inp_complete$huc10)
     n_calib_huc10 <- floor(length(huc10s) * inp_split_frac_calib)
 
-    set.seed(24744)
+    set.seed(20220708)
     calib_huc10 <- sample(huc10s, n_calib_huc10, replace = FALSE)
     valid_huc10 <- setdiff(huc10s, calib_huc10)
 
@@ -32,27 +32,6 @@ targets_inp <- list(
         ),
         .before = 1
       )
-  }),
-  tar_target(inp_variable_std, {
-    inp_split %>%
-      pivot_longer(-c(partition, featureid, presence, starts_with("huc"))) %>%
-      group_by(name) %>%
-      summarize(
-        mean = mean(value),
-        sd = sd(value),
-        .groups = "drop"
-      )
-  }),
-  tar_target(inp_split_std, {
-    inp_split %>%
-      pivot_longer(-c(partition, featureid, presence, starts_with("huc"))) %>%
-      left_join(inp_variable_std, by = "name") %>%
-      mutate(
-        value = (value - mean) / sd
-      ) %>%
-      select(-mean, -sd) %>%
-      pivot_wider() %>%
-      arrange(partition, huc12, featureid)
   }),
 
   tar_target(inp_select_cov, {
@@ -70,21 +49,22 @@ targets_inp <- list(
     gis_catchments %>%
       inner_join(inp_split, by = "featureid") %>%
       ggplot() +
-      geom_sf(aes(color = partition)) +
-      geom_sf(data = gis_states, fill = NA, size = 1) +
-      scale_color_brewer("Parition", type = "qual", palette = 2)
+      geom_sf(aes(color = factor(presence)), size = 0.5) +
+      geom_sf(data = gis_states, fill = NA, size = 0.5) +
+      scale_color_manual(
+        NULL,
+        values = c("0" = "orangered", "1" = "deepskyblue"),
+        labels = c("0" = "Absence", "1" = "Presence")
+      ) +
+      facet_wrap(vars(partition), nrow = 1, labeller = labeller(
+        partition = c(
+          calib = "Calibration",
+          valid = "Validation"
+        )
+      ))
   }),
   tar_target(inp_plot_hist_cov, {
     inp_split %>%
-      select(partition, featureid, all_of(inp_select_cov)) %>%
-      pivot_longer(-c(partition, featureid)) %>%
-      ggplot(aes(value)) +
-      geom_histogram() +
-      facet_grid(vars(partition), vars(name), scales = "free") +
-      labs(x = NULL, y = "# Catchments")
-  }),
-  tar_target(inp_plot_hist_cov_std, {
-    inp_split_std %>%
       select(partition, featureid, all_of(inp_select_cov)) %>%
       pivot_longer(-c(partition, featureid)) %>%
       ggplot(aes(value)) +
