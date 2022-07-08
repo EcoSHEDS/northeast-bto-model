@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Section 4 Calibration and Validation | EcoSHEDS Northeast Brook Trout Occupancy Model</title>
+  <meta name="description" content="Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model." />
+  <meta name="generator" content="bookdown 0.27 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Section 4 Calibration and Validation | EcoSHEDS Northeast Brook Trout Occupancy Model" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model." />
+  <meta name="github-repo" content="walkerjeffd/sheds-bto-model" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Section 4 Calibration and Validation | EcoSHEDS Northeast Brook Trout Occupancy Model" />
+  
+  <meta name="twitter:description" content="Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model." />
+  
+
+<meta name="author" content="Jeffrey D. Walker, Benjamin Letcher" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="model-development.html"/>
+<link rel="next" href="predictions.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CBK3R7N2WQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CBK3R7N2WQ');
+</script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 1em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">EcoSHEDS BTO Model</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#model-summary"><i class="fa fa-check"></i><b>1.1</b> Model Summary</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#documentation"><i class="fa fa-check"></i><b>1.2</b> Documentation</a></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="index.html#source-code"><i class="fa fa-check"></i><b>1.3</b> Source Code</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="data-sources.html"><a href="data-sources.html"><i class="fa fa-check"></i><b>2</b> Data Sources</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="data-sources.html"><a href="data-sources.html#catchment-delineation"><i class="fa fa-check"></i><b>2.1</b> Catchment Delineation</a></li>
+<li class="chapter" data-level="2.2" data-path="data-sources.html"><a href="data-sources.html#huc8-basins"><i class="fa fa-check"></i><b>2.2</b> HUC8 Basins</a></li>
+<li class="chapter" data-level="2.3" data-path="data-sources.html"><a href="data-sources.html#observation-data"><i class="fa fa-check"></i><b>2.3</b> Observation Data</a></li>
+<li class="chapter" data-level="2.4" data-path="data-sources.html"><a href="data-sources.html#stream-temperature"><i class="fa fa-check"></i><b>2.4</b> Stream Temperature</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="model-development.html"><a href="model-development.html"><i class="fa fa-check"></i><b>3</b> Model Development</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="model-development.html"><a href="model-development.html#model-definition"><i class="fa fa-check"></i><b>3.1</b> Model Definition</a></li>
+<li class="chapter" data-level="3.2" data-path="model-development.html"><a href="model-development.html#model-history"><i class="fa fa-check"></i><b>3.2</b> Model History</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="calibration-and-validation.html"><a href="calibration-and-validation.html"><i class="fa fa-check"></i><b>4</b> Calibration and Validation</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="calibration-and-validation.html"><a href="calibration-and-validation.html#dataset-split"><i class="fa fa-check"></i><b>4.1</b> Dataset Split</a></li>
+<li class="chapter" data-level="4.2" data-path="calibration-and-validation.html"><a href="calibration-and-validation.html#calibration"><i class="fa fa-check"></i><b>4.2</b> Calibration</a></li>
+<li class="chapter" data-level="4.3" data-path="calibration-and-validation.html"><a href="calibration-and-validation.html#validation"><i class="fa fa-check"></i><b>4.3</b> Validation</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="predictions.html"><a href="predictions.html"><i class="fa fa-check"></i><b>5</b> Predictions</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="predictions.html"><a href="predictions.html#full-calibration"><i class="fa fa-check"></i><b>5.1</b> Full Calibration</a></li>
+<li class="chapter" data-level="5.2" data-path="predictions.html"><a href="predictions.html#prediction-metrics"><i class="fa fa-check"></i><b>5.2</b> Prediction Metrics</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="downloads.html"><a href="downloads.html"><i class="fa fa-check"></i><b>6</b> Downloads</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="downloads.html"><a href="downloads.html#model-predictions"><i class="fa fa-check"></i><b>6.1</b> Model Predictions</a></li>
+<li class="chapter" data-level="6.2" data-path="downloads.html"><a href="downloads.html#catchment-delineation-1"><i class="fa fa-check"></i><b>6.2</b> Catchment Delineation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="history.html"><a href="history.html"><i class="fa fa-check"></i><b>7</b> History</a>
+<ul>
+<li class="chapter" data-level="7.1" data-path="history.html"><a href="history.html#versioning"><i class="fa fa-check"></i><b>7.1</b> Versioning</a></li>
+<li class="chapter" data-level="7.2" data-path="history.html"><a href="history.html#change-log"><i class="fa fa-check"></i><b>7.2</b> Change Log</a></li>
+</ul></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">EcoSHEDS Northeast Brook Trout Occupancy Model</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="calibration-and-validation" class="section level1 hasAnchor" number="4">
+<h1><span class="header-section-number">Section 4</span> Calibration and Validation<a href="calibration-and-validation.html#calibration-and-validation" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="dataset-split" class="section level2 hasAnchor" number="4.1">
+<h2><span class="header-section-number">4.1</span> Dataset Split<a href="calibration-and-validation.html#dataset-split" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>To calibrate and validate the model, the observed dataset of presence/absence by catchment (see <a href="data-sources.html#observation-data">Observation Data</a>) was randomly split using 80% of the catchments for calibration and 20% for validation.</p>
+<div class="figure"><span style="display:block;" id="fig:calib-map"></span>
+<img src="sheds-bto-model_files/figure-html/calib-map-1.png" alt="Calibration and Validation Splits" width="672" />
+<p class="caption">
+Figure 4.1: Calibration and Validation Splits
+</p>
+</div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Partition</th>
+<th align="right">Presence</th>
+<th align="right">Absense</th>
+<th align="right">Total</th>
+<th align="right">% Presence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Calibration</td>
+<td align="right">6,690</td>
+<td align="right">3,612</td>
+<td align="right">10,302</td>
+<td align="right">64.9%</td>
+</tr>
+<tr class="even">
+<td align="left">Validation</td>
+<td align="right">1,822</td>
+<td align="right">1,017</td>
+<td align="right">2,839</td>
+<td align="right">64.2%</td>
+</tr>
+<tr class="odd">
+<td align="left">Total</td>
+<td align="right">8,512</td>
+<td align="right">4,629</td>
+<td align="right">13,141</td>
+<td align="right">64.8%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="calibration" class="section level2 hasAnchor" number="4.2">
+<h2><span class="header-section-number">4.2</span> Calibration<a href="calibration-and-validation.html#calibration" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The following output summarizes the fitted model using the calibration subset.</p>
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
+ Family: binomial  ( logit )
+Formula: presence ~ mean_jul_temp + (1 | huc8)
+   Data: model_data
+Control: glmerControl(optimizer = &quot;bobyqa&quot;)
+
+     AIC      BIC   logLik deviance df.resid 
+  8592.8   8614.7  -4293.4   8586.8    10934 
+
+Scaled residuals: 
+    Min      1Q  Median      3Q     Max 
+-32.628  -0.371   0.135   0.427  11.133 
+
+Random effects:
+ Groups Name        Variance Std.Dev.
+ huc8   (Intercept) 4.999    2.236   
+Number of obs: 10937, groups:  huc8, 202
+
+Fixed effects:
+              Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)   19.54035    0.68083   28.70   &lt;2e-16 ***
+mean_jul_temp -1.03582    0.03444  -30.07   &lt;2e-16 ***
+---
+Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+
+Correlation of Fixed Effects:
+            (Intr)
+mean_jl_tmp -0.965</code></pre>
+<p>The estimated fixed effect for mean July temp (<code>mean_jul_temp</code>) was -1.04. Because the estimated value is negative, the occupancy probability is higher at lower stream temperatures. Figure @(fig:calib-fixed) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects).</p>
+<div class="figure"><span style="display:block;" id="fig:calib-fixef"></span>
+<img src="sheds-bto-model_files/figure-html/calib-fixef-1.png" alt="Marginal Effects Plot for Mean July Stream Temperature." width="672" />
+<p class="caption">
+Figure 4.2: Marginal Effects Plot for Mean July Stream Temperature.
+</p>
+</div>
+<p>The random effect intercept varies by HUC8 basin. Basins with higher values tend to have higher occupancy probabilities for a given mean July stream temperature. Some HUC8 basins do not have an estimated value because there was no observations with the calibration dataset.</p>
+<div class="figure"><span style="display:block;" id="fig:calib-ranef"></span>
+<img src="sheds-bto-model_files/figure-html/calib-ranef-1.png" alt="Random Effect Intercept by HUC8 Basin" width="672" />
+<p class="caption">
+Figure 4.3: Random Effect Intercept by HUC8 Basin
+</p>
+</div>
+<p>The model accuracy and performance is summarized by a series of metrics computed from the confusion matrix, which contains the total number of true positives, true negatives, false positives, and false negatives. In the 2x2 table at the top of the following output, the columns (<code>Reference</code>) refer to the observed condition in each catchment (<code>1</code> = presence, <code>0</code> = absence), while the rows (<code>Prediction</code>) refer to the predicted condition. The predicted probabilities were converted to presence/absence using a 50% cutoff. The remaining output provides a series of performance metrics computed from the confusion matrix using the <code>confusionMatrix()</code> of the <code>caret</code> package <span class="citation">(<a href="#ref-kuhn2022" role="doc-biblioref">Kuhn, 2022</a>)</span>. See the <a href="https://rdrr.io/cran/caret/man/confusionMatrix.html">help page</a> for that function, as well as <a href="https://en.wikipedia.org/wiki/Confusion_matrix">this Wikipedia article</a>, for definitions of each metric.</p>
+<pre><code>Confusion Matrix and Statistics
+
+          Reference
+Prediction    0    1
+         0 2733  728
+         1 1107 6369
+                                          
+               Accuracy : 0.8322          
+                 95% CI : (0.8251, 0.8392)
+    No Information Rate : 0.6489          
+    P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+                                          
+                  Kappa : 0.6233          
+                                          
+ Mcnemar&#39;s Test P-Value : &lt; 2.2e-16       
+                                          
+            Sensitivity : 0.8974          
+            Specificity : 0.7117          
+         Pos Pred Value : 0.8519          
+         Neg Pred Value : 0.7897          
+             Prevalence : 0.6489          
+         Detection Rate : 0.5823          
+   Detection Prevalence : 0.6836          
+      Balanced Accuracy : 0.8046          
+                                          
+       &#39;Positive&#39; Class : 1               
+                                          </code></pre>
+</div>
+<div id="validation" class="section level2 hasAnchor" number="4.3">
+<h2><span class="header-section-number">4.3</span> Validation<a href="calibration-and-validation.html#validation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Using the calibrated model, predicted probabilities were computed using the indendent validation dataset.</p>
+<p>The confusion matrix for the validation dataset indicates slightly lower accuracy (0.83 vs 0.81), but overall comparable performance. These results suggest that the model does not suffer from overfitting.</p>
+<pre><code>Confusion Matrix and Statistics
+
+          Reference
+Prediction    0    1
+         0  590  221
+         1  199 1194
+                                          
+               Accuracy : 0.8094          
+                 95% CI : (0.7924, 0.8256)
+    No Information Rate : 0.642           
+    P-Value [Acc &gt; NIR] : &lt;2e-16          
+                                          
+                  Kappa : 0.588           
+                                          
+ Mcnemar&#39;s Test P-Value : 0.3055          
+                                          
+            Sensitivity : 0.8438          
+            Specificity : 0.7478          
+         Pos Pred Value : 0.8571          
+         Neg Pred Value : 0.7275          
+             Prevalence : 0.6420          
+         Detection Rate : 0.5417          
+   Detection Prevalence : 0.6320          
+      Balanced Accuracy : 0.7958          
+                                          
+       &#39;Positive&#39; Class : 1               
+                                          </code></pre>
+<p>The following table compares the performance metrics between the two subsets.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Metric</th>
+<th align="right">Calibration</th>
+<th align="right">Validation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Accuracy</td>
+<td align="right">0.832</td>
+<td align="right">0.809</td>
+</tr>
+<tr class="even">
+<td align="left">Sensitivity</td>
+<td align="right">0.897</td>
+<td align="right">0.844</td>
+</tr>
+<tr class="odd">
+<td align="left">Specificity</td>
+<td align="right">0.712</td>
+<td align="right">0.748</td>
+</tr>
+<tr class="even">
+<td align="left">Pos Pred Value</td>
+<td align="right">0.852</td>
+<td align="right">0.857</td>
+</tr>
+<tr class="odd">
+<td align="left">Neg Pred Value</td>
+<td align="right">0.790</td>
+<td align="right">0.727</td>
+</tr>
+<tr class="even">
+<td align="left">Precision</td>
+<td align="right">0.852</td>
+<td align="right">0.857</td>
+</tr>
+<tr class="odd">
+<td align="left">Recall</td>
+<td align="right">0.897</td>
+<td align="right">0.844</td>
+</tr>
+<tr class="even">
+<td align="left">F1</td>
+<td align="right">0.874</td>
+<td align="right">0.850</td>
+</tr>
+<tr class="odd">
+<td align="left">Prevalence</td>
+<td align="right">0.649</td>
+<td align="right">0.642</td>
+</tr>
+<tr class="even">
+<td align="left">Detection Rate</td>
+<td align="right">0.582</td>
+<td align="right">0.542</td>
+</tr>
+<tr class="odd">
+<td align="left">Detection Prevalence</td>
+<td align="right">0.684</td>
+<td align="right">0.632</td>
+</tr>
+<tr class="even">
+<td align="left">Balanced Accuracy</td>
+<td align="right">0.805</td>
+<td align="right">0.796</td>
+</tr>
+</tbody>
+</table>
+<p>Lastly, <a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic">Receiver Operator Characteristic (ROC)</a> curves and Area Under the Curve (AUC) values also shows comparable performance between the calibration and validation subsets.</p>
+<div class="figure"><span style="display:block;" id="fig:calib-roc"></span>
+<img src="sheds-bto-model_files/figure-html/calib-roc-1.png" alt="ROC Curves for Calibration and Validation" width="672" />
+<p class="caption">
+Figure 4.4: ROC Curves for Calibration and Validation
+</p>
+</div>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-kuhn2022" class="csl-entry">
+Kuhn, M. (2022). <em><a href="https://CRAN.R-project.org/package=caret">Caret: Classification and regression training</a></em>.
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="model-development.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="predictions.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["sheds-bto-model.pdf", "sheds-bto-model.epub"],
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+</body>
+
+</html>

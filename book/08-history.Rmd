@@ -1,0 +1,34 @@
+# History
+
+## Versioning
+
+The model uses semantic versioning of the form: `vX.Y.Z`
+
+- `X` is the **major** version, which will be incremented when there is a new set of results and major changes to the model structure, code, or datasets.
+- `Y` is the **minor** version, which will be incremented when there is a new set of results and minor changes in the model code or datasets (but no change in model structure).
+- `Z` is the **patch** version, which will be incremented only when there is a change to the documentation or code that *does not* yield different results.
+
+## Change Log
+
+- v2.0.0 | Jul 8, 2022
+Removed all fixed effects except for mean July stream temperature due to cross-correlation between stream temperatures and other covariates (e.g., forest cover). Changed random effect levels from HUC10 to HUC8.
+- v1.4.0 | Sep 8, 2021  
+Re-calibrate model with updated stream temperature model results through 2020 ([v1.3.0](http://ecosheds.org/models/stream-temperature/v1.3.0/)), removed July stream temperature scenarios from predictions (these have been replaced by the air temperature scenarios)
+- v1.3.0 | Jul 13, 2020  
+Re-run calibration with updated stream temperature model results through 2019 ([v1.2.0](http://ecosheds.org/models/stream-temperature/v1.2.0/))
+- v1.2.2 | Jan 17, 2020  
+Rename prediction metrics to be more consistent
+- v1.2.1 | Jan 16, 2020  
+Added predictions for air temperature scenarios (+2, +4, +6 degC), remove 0.5 degC increments from July stream temperature scenarios, revise method for estimating max temperature increases to achieve occupancy thresholds using linear interpolation
+- v1.2.0 | Dec 3, 2019  
+Re-run calibration with updated stream temperature model results ([v1.1](http://ecosheds.org/models/stream-temperature/v1.1/))
+- v1.1.1 | Mar 26, 2019  
+Update documentation, add [Download] section containing links to model predictions, catchment delineation, and covariates.
+- v1.1.0 | Mar 25, 2019  
+Add observation data from MA DFW. Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
+- v1.0.0 | Oct 25, 2018  
+Recalibrate model using [v1.0 of stream temperature model](http://ecosheds.org/models/stream-temperature/v1.0.1/).
+- v0.9.0 | Aug 16, 2018  
+Preliminary release of the new model framework and documentation.
+- **[Previous Versions](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/) (prior to 2018)**  
+Previous versions of the brook trout occupancy model can be found [here](http://conte-ecology.github.io/Northeast_Bkt_Occupancy/). That website is now deprecated, but will remain available for future reference. Beginning with v1.0.0 of the new framework and codebase, all model changes and results will be tracked and made available.

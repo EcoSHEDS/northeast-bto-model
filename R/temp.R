@@ -35,8 +35,16 @@ targets_temp <- list(
   tar_target(temp_model_catchments_map, {
     temp_model_catchments |>
       filter(!is.na(mean_jul_temp)) |>
+      sample_frac(0.1) |>
       ggplot() +
-      geom_sf(aes(color = mean_jul_temp), size = 0.2) +
-      scale_color_viridis_c("Mean July Temp\n(degC)")
+      geom_sf(aes(color = mean_jul_temp), size = 0.25) +
+      geom_sf(data = select(gis_states, -name), fill = NA, size = 0.5, color = "grey10") +
+      scale_color_viridis_c("Mean July Temp\n(degC)") +
+      theme_bw() +
+      theme(
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.grid = element_blank()
+      )
   })
 )

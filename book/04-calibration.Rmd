@@ -1,0 +1,89 @@
+# Calibration and Validation
+
+## Dataset Split
+
+To calibrate and validate the model, the observed dataset of presence/absence by catchment (see [Observation Data]) was randomly split using `r scales::percent(tar_read(inp_split_frac_calib), accuracy = 1)` of the catchments for calibration and `r scales::percent(1 - tar_read(inp_split_frac_calib), accuracy = 1)` for validation.
+
+```{r calib-map, fig.height=3, fig.cap="Calibration and Validation Splits"}
+tar_read(inp_map_split)
+```
+
+```{r calib-split}
+tar_read(inp_split_std) |> 
+  mutate(
+    partition = if_else(partition == "calib", "Calibration", "Validation")
+  ) |> 
+  group_by(Partition = partition) |> 
+  summarise(
+    Presence = sum(presence),
+    Absense = n() - Presence
+  ) |> 
+  adorn_totals(where = c("row", "col")) |> 
+  mutate(
+    `% Presence` = scales::percent(Presence / Total, accuracy = 0.1),
+    across(-c(Partition, `% Presence`), scales::comma)
+  ) |> 
+  knitr::kable(align = "lrrrr")
+```
+
+## Calibration
+
+The following output summarizes the fitted model using the calibration subset.
+
+```{r calib-summary}
+tar_load(model_gm)
+summary(model_gm)
+```
+
+The estimated fixed effect for mean July temp (`mean_jul_temp`) was `r scales::number(model_gm@beta[2], accuracy = 0.01)`. Because the estimated value is negative, the occupancy probability is higher at lower stream temperatures. Figure @\ref(fig:calib-fixed) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects).
+
+```{r calib-fixef, fig.cap="Marginal Effects Plot for Mean July Stream Temperature."}
+tar_read(model_gm_plot_eff) +
+  labs(x = "Mean July Stream Temp (degC)", y = "Occupancy Probability", title = NULL)
+```
+
+The random effect intercept varies by HUC8 basin. Basins with higher values tend to have higher occupancy probabilities for a given mean July stream temperature. Some HUC8 basins do not have an estimated value because there was no observations with the calibration dataset.
+
+```{r calib-ranef, fig.cap="Random Effect Intercept by HUC8 Basin"}
+tar_read(model_ranef_map)
+```
+
+The model accuracy and performance is summarized by a series of metrics computed from the confusion matrix, which contains the total number of true positives, true negatives, false positives, and false negatives. In the 2x2 table at the top of the following output, the columns (`Reference`) refer to the observed condition in each catchment (`1` = presence, `0` = absence), while the rows (`Prediction`) refer to the predicted condition. The predicted probabilities were converted to presence/absence using a 50% cutoff. The remaining output provides a series of performance metrics computed from the confusion matrix using the `confusionMatrix()` of the `caret` package [@kuhn2022]. See the [help page](https://rdrr.io/cran/caret/man/confusionMatrix.html) for that function, as well as [this Wikipedia article](https://en.wikipedia.org/wiki/Confusion_matrix), for definitions of each metric. 
+
+```{r calib-cm}
+tar_load(model_confusion)
+model_confusion$calib
+```
+
+## Validation
+
+Using the calibrated model, predicted probabilities were computed using the indendent validation dataset. 
+
+The confusion matrix for the validation dataset indicates slightly lower accuracy (`r round(model_confusion$calib$overall[["Accuracy"]], 2)` vs `r round(model_confusion$valid$overall[["Accuracy"]], 2)`), but overall comparable performance. These results suggest that the model does not suffer from overfitting.
+
+```{r calib-valid-cm}
+model_confusion$valid
+```
+The following table compares the performance metrics between the two subsets.
+
+```{r calib-compare}
+map_df(c("calib", "valid"), function (split) {
+  x <- model_confusion[[split]]
+  tibble(
+    name = split,
+    Metric = c("Accuracy", names(x$byClass)),
+    value = c(x$overall["Accuracy"], x$byClass)
+  )
+}) |> 
+  mutate(value = round(value, 3)) |> 
+  pivot_wider() |> 
+  rename(Calibration = calib, Validation = valid) |> 
+  knitr::kable(align = "lrr")
+```
+
+Lastly, [Receiver Operator Characteristic (ROC)](https://en.wikipedia.org/wiki/Receiver_operating_characteristic) curves and Area Under the Curve (AUC) values also shows comparable performance between the calibration and validation subsets.
+
+```{r calib-roc, fig.cap="ROC Curves for Calibration and Validation"}
+tar_read(model_gof_plot_roc_curves)
+```
+

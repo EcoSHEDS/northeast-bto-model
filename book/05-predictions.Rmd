@@ -1,0 +1,71 @@
+# Predictions
+
+```{r predict-setup, echo = FALSE, eval = FALSE}
+library(tidyverse)
+library(patchwork)
+library(sf)
+library(caret)
+library(janitor)
+library(targets)
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, comment = NA)
+
+tar_config_set(store = "../_targets")
+```
+
+## Full Calibration
+
+To utilize the maximum amount of information available from the observation data, the model was re-calibrated using the full observation dataset. The following output shows that the estimated effects were comparable to those from the initial calibration based on `r scales::percent(tar_read(inp_split_frac_calib), accuracy = 1)` split of the full dataset (see [Calibration]).
+
+```{r predict-model-summary}
+tar_load(predict_model)
+summary(predict_model)
+```
+
+The estimated fixed effect for mean July temp (`mean_jul_temp`) was `r scales::number(predict_model@beta[2], accuracy = 0.01)`. Figure \@ref(fig:Calibration and Validation) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects) showing higher predicted probabilities at lower stream temperatures.
+
+```{r predict-model-fixef, fig.cap="Marginal Effects Plot for Mean July Stream Temperature (Prediction Model)"}
+tar_read(predict_model_plot_eff) +
+  labs(x = "Mean July Stream Temp (degC)", y = "Occupancy Probability", title = "Marginal Effects for Prediction Model")
+```
+
+The HUC8 random effect intercepts were also relatively similar to those from the initial calibration model.
+
+```{r predict-model-ranef, fig.cap="Random Effect Intercept by HUC8 Basin (Prediction Model)"}
+tar_read(predict_model_ranef_map) +
+  labs(title = "HUC8 Intercepts for Prediction Model")
+```
+
+The following output summarizes the prediction model's accuracy and performance (see [Calibration] for explanation of this output).
+
+```{r predict-model-cm}
+tar_read(predict_model_confusion)
+```
+
+The following table compares the performance of the prediction model using all available data to that of the calibration and validation subsets (see [Calibration and Validation]). Overall, the full prediction model performs very similarly to the initial calibration model.
+
+```{r predict-model-compare}
+tar_read(predict_model_gof_compare) |> 
+  rename(Metric = stat, Calibration = calib, Validation = valid, `Full (Prediction)` = pred) |> 
+  knitr::kable(align = "lrrr")
+```
+
+## Prediction Metrics
+
+Using the prediction model that was fitted to the full observation dataset, a series of occupancy metrics were computed for each catchment over the region (excluding those with cumulative drainage areas > 200 km^2^).
+
+The prediction metrics include:
+
+1. Occupancy probability under historical conditions as well as air temperature increases of +2, +4, and +6 degC, which represents a series of simple climate change scenarios.
+
+```{r predict-map-prob, fig.height=6, fig.cap="Predicted Occupancy Probabilities under Historical and Future Climate Change Scenarios"}
+tar_read(predict_pred_map_prob)
+```
+
+2. The maximum increase in air temperature such that the predicted occupancy would be 30, 50, or 70%. These metrics indicate how resistant each catchment is to future climate change. Catchments with higher values can tolerate a larger increase in air temperature and still achieve each target occupancy probability. 
+
+```{r predict-map-max, fig.height=6, fig.cap="Predicted Max. Air Temperature Increases to Achieve Varying Occupancy Probabilities"}
+tar_read(predict_pred_map_max)
+```
+
+A dataset containing the predicted values for these metrics can be downloaded in the [Downloads] section.
