@@ -231,7 +231,8 @@ div.csl-indent {
 <div id="full-calibration" class="section level2 hasAnchor" number="5.1">
 <h2><span class="header-section-number">5.1</span> Full Calibration<a href="predictions.html#full-calibration" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>To utilize the maximum amount of information available from the observation data, the model was re-calibrated using the full observation dataset. The following output shows that the estimated effects were comparable to those from the initial calibration based on 80% split of the full dataset (see <a href="calibration-and-validation.html#calibration">Calibration</a>).</p>
-<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace Approximation) [&#39;glmerMod&#39;]
+<pre><code>Generalized linear mixed model fit by maximum likelihood (Laplace
+  Approximation) [glmerMod]
  Family: binomial  ( logit )
 Formula: presence ~ mean_jul_temp + (1 | huc8)
    Data: predict_inp

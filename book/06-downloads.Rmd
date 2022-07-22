@@ -47,19 +47,6 @@ knitr::kable(df_columns, col.names = c("CSV Column", "Description"), align = "rl
 
 ## Catchment Delineation
 
-The [EcoSHEDS Northeast Catchment Delineation](http://conte-ecology.github.io/shedsGisData/) can be downloaded from the following links, which contain shapefiles grouped by HUC2 region. The model predictions dataset can be joined to these shapefiles using the common `featureid` column, which serves as the unique catchment ID.
+The catchment delineation and associated flowlines can be downloaded as shapefiles from the [EcoSHEDS Northeast Catchment Delineation](https://ecosheds.github.io/necd/) website. The model predictions dataset (above) can be joined to these shapefiles using the common `featureid` column, which serves as the unique catchment ID.
 
-```{r}
-knitr::include_graphics("img/hydrologic-regions.png")
-```
-
-- [Region 01 Catchments (zip)](http://ecosheds.org/assets/nhdhrd/v2/spatial_01.zip)
-- [Region 02 Catchments (zip)](http://ecosheds.org/assets/nhdhrd/v2/spatial_02.zip)
-- [Region 03 Catchments (zip)](http://ecosheds.org/assets/nhdhrd/v2/spatial_03.zip)
-- [Region 04 Catchments (zip)](http://ecosheds.org/assets/nhdhrd/v2/spatial_04.zip)
-- [Region 05 Catchments (zip)](http://ecosheds.org/assets/nhdhrd/v2/spatial_05.zip)
-- [Region 06 Catchments (zip)](http://ecosheds.org/assets/nhdhrd/v2/spatial_06.zip)
-
-The documentation for the catchment delineation is also available:
-
-> **[EcoSHEDS Northeast Catchment Delineation (docx)](http://ecosheds.org/assets/nhdhrd/v2/NHDHRDV2_Documentation.docx)**
+> **[EcoSHEDS Northeast Catchment Delineation](https://ecosheds.github.io/necd/)**

@@ -233,12 +233,12 @@ div.csl-indent {
 <p>The occupancy model uses a logistic linear mixed effects model framework for estimating the probability of occupancy in each catchment <span class="citation">(<a href="#ref-bolker2009" role="doc-biblioref">Bolker et al., 2009</a>; <a href="#ref-zuur2009" role="doc-biblioref">Zuur et al., 2009</a>)</span>.</p>
 <p>The model includes one fixed effect representing the estimated mean July stream temperature (see <a href="data-sources.html#stream-temperature">Stream Temperature</a>), and a random effect intercept that varies by HUC8. The random effect is included to account for spatial variations in observed occupancy that are not explained by the mean July stream temperature.</p>
 <p>The model is fit using the <code>glmer()</code> function of the <code>lme4</code> R package <span class="citation">(<a href="#ref-bates2015" role="doc-biblioref">Bates et al., 2015</a>)</span> using the following formula and parameters.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="model-development.html#cb4-1" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">glmer</span>(</span>
-<span id="cb4-2"><a href="model-development.html#cb4-2" aria-hidden="true" tabindex="-1"></a>  presence <span class="sc">~</span> mean_jul_temp <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> huc8),</span>
-<span id="cb4-3"><a href="model-development.html#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
-<span id="cb4-4"><a href="model-development.html#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> model_data,</span>
-<span id="cb4-5"><a href="model-development.html#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">glmerControl</span>(<span class="at">optimizer =</span> <span class="st">&quot;bobyqa&quot;</span>)</span>
-<span id="cb4-6"><a href="model-development.html#cb4-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="model-development.html#cb2-1" aria-hidden="true" tabindex="-1"></a>lme4<span class="sc">::</span><span class="fu">glmer</span>(</span>
+<span id="cb2-2"><a href="model-development.html#cb2-2" aria-hidden="true" tabindex="-1"></a>  presence <span class="sc">~</span> mean_jul_temp <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> huc8),</span>
+<span id="cb2-3"><a href="model-development.html#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb2-4"><a href="model-development.html#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> model_data,</span>
+<span id="cb2-5"><a href="model-development.html#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control =</span> <span class="fu">glmerControl</span>(<span class="at">optimizer =</span> <span class="st">&quot;bobyqa&quot;</span>)</span>
+<span id="cb2-6"><a href="model-development.html#cb2-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="model-history" class="section level2 hasAnchor" number="3.2">
 <h2><span class="header-section-number">3.2</span> Model History<a href="model-development.html#model-history" class="anchor-section" aria-label="Anchor link to header"></a></h2>
