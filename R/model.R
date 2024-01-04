@@ -2,12 +2,12 @@ tar_option_set(packages = c("tidyverse", "lubridate", "sf", "here", "janitor", "
 
 targets_model <- list(
   tar_target(model_formula, presence ~ mean_jul_temp + (1 | huc8)),
+  tar_target(model_gm_data, filter(inp_split, partition == "calib")),
   tar_target(model_gm, {
-    model_data <- filter(inp_split, partition == "calib")
     glmer(
       model_formula,
       family = binomial(link = "logit"),
-      data = model_data,
+      data = model_gm_data,
       control = glmerControl(optimizer = "bobyqa")
     )
   }),
@@ -17,13 +17,13 @@ targets_model <- list(
   tar_target(model_gm_plot_est, {
     plot_model(model_gm, sort.est = TRUE, show.values = TRUE, value.offset = 0.3)
   }),
-  tar_target(model_gm_plot_eff, {
-    p <- map(model_eff_names, function (v) {
-      plot_model(model_gm, type = "eff", terms = glue("{v} [all]")) +
-        labs(title = v)
-    })
-    wrap_plots(p)
-  }),
+  # tar_target(model_gm_plot_eff, {
+  #   p <- map(model_eff_names, function (v) {
+  #     plot_model(model_gm, type = "eff", terms = glue("{v} [all]")) +
+  #       labs(title = v)
+  #   })
+  #   wrap_plots(p)
+  # }),
   tar_target(model_gm_plot_re, {
     plot_model(model_gm, type = "re", sort.est = "(Intercept)")
   }),

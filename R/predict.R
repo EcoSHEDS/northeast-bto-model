@@ -29,13 +29,20 @@ targets_predict <- list(
   tar_target(predict_model_gm_plot_est, {
     plot_model(predict_model, sort.est = TRUE, show.values = TRUE, value.offset = 0.3)
   }),
-  tar_target(predict_model_plot_eff, {
-    p <- map(predict_model_eff_names, function (v) {
-      plot_model(predict_model, type = "eff", terms = glue("{v} [all]")) +
-        labs(title = v)
-    })
-    wrap_plots(p)
-  }),
+  # tar_target(predict_model_plot_eff, {
+  #   x <- predict_inp
+  #   plots <- list()
+  #   for (name in predict_model_eff_names) {
+  #     p <- plot_model(predict_model, type = "eff", terms = glue("{name} [all]")) +
+  #       labs(title = name)
+  #     plots <- c(plots, p)
+  #   }
+  #   # p <- map(predict_model_eff_names, function (v) {
+  #   #   plot_model(predict_model, type = "eff", terms = glue("{v} [all]")) +
+  #   #     labs(title = v)
+  #   # })
+  #   wrap_plots(p)
+  # }),
 
   tar_target(predict_model_pred, create_model_pred(predict_inp, predict_model)),
   tar_target(predict_model_gof, create_model_gof(predict_model_pred)),
@@ -186,7 +193,7 @@ targets_predict <- list(
       value = c(predict_model_confusion$overall["Accuracy"], predict_model_confusion$byClass)
     )
     map_df(c("calib", "valid"), function (split) {
-      x <- tar_read(model_confusion)[[split]]
+      x <- model_confusion[[split]]
       tibble(
         name = split,
         stat = c("Accuracy", names(x$byClass)),

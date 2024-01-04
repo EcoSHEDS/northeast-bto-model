@@ -12,7 +12,7 @@ if (interactive()) {
 }
 
 list(
-  tar_target(bto_version, "2.0.0"),
+  tar_target(bto_version, "2.1.0"),
   tar_target(bto_wd, file.path(Sys.getenv("BTO_WD_ROOT"), bto_version), cue = tar_cue(mode = "always")),
 
   targets_huc,

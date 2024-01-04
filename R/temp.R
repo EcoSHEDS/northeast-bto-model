@@ -1,7 +1,7 @@
 # temperature model predictions
 
 targets_temp <- list(
-  tar_target(temp_model_version, Sys.getenv("BTO_TEMP_MODEL"), cue = tar_cue("always")),
+  tar_target(temp_model_file, Sys.getenv("BTO_TEMP_MODEL_FILE"), format = "file"),
   tar_target(temp_model_variables, {
     c(
       "mean_jul_temp",
@@ -13,20 +13,8 @@ targets_temp <- list(
     )
   }),
   tar_target(temp_model, {
-    con <- db_connect()
-    x <- tbl(con, "temp_model") |>
-      select(featureid, version, variable, value) |>
-      filter(
-        version == temp_model_version,
-        variable %in% temp_model_variables
-      ) |>
-      collect()
-    DBI::dbDisconnect(con)
-
-    x |>
-      select(-version) |>
-      pivot_wider(names_from = "variable") |>
-      relocate(featureid)
+    read_csv(temp_model_file, col_types = cols(.default = col_double(), featureid = col_double())) |>
+      select(featureid, all_of(temp_model_variables))
   }),
   tar_target(temp_model_catchments, {
     gis_catchments |>
