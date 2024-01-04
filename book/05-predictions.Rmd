@@ -25,7 +25,13 @@ summary(predict_model)
 The estimated fixed effect for mean July temp (`mean_jul_temp`) was `r scales::number(predict_model@beta[2], accuracy = 0.01)`. Figure \@ref(fig:Calibration and Validation) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects) showing higher predicted probabilities at lower stream temperatures.
 
 ```{r predict-model-fixef, fig.cap="Marginal Effects Plot for Mean July Stream Temperature (Prediction Model)"}
-tar_read(predict_model_plot_eff) +
+tar_load(predict_model)
+tar_load(predict_inp)
+p <- map(tar_read(predict_model_eff_names), function (v) {
+  sjPlot::plot_model(predict_model, type = "eff", terms = glue("{v} [all]")) +
+    labs(title = v)
+})
+wrap_plots(p) +
   labs(x = "Mean July Stream Temp (degC)", y = "Occupancy Probability", title = "Marginal Effects for Prediction Model")
 ```
 

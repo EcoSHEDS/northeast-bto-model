@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Section 4 Calibration and Validation | EcoSHEDS Northeast Brook Trout Occupancy Model</title>
   <meta name="description" content="Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model." />
-  <meta name="generator" content="bookdown 0.27 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Section 4 Calibration and Validation | EcoSHEDS Northeast Brook Trout Occupancy Model" />
   <meta property="og:type" content="book" />
@@ -64,7 +64,7 @@
 
 <style type="text/css">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -100,7 +100,7 @@ code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code span.at { color: #7d9029; } /* Attribute */
 code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
+code span.bu { color: #008000; } /* BuiltIn */
 code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
 code span.ch { color: #4070a0; } /* Char */
 code span.cn { color: #880000; } /* Constant */
@@ -113,7 +113,7 @@ code span.er { color: #ff0000; font-weight: bold; } /* Error */
 code span.ex { } /* Extension */
 code span.fl { color: #40a070; } /* Float */
 code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
+code span.im { color: #008000; font-weight: bold; } /* Import */
 code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 code span.kw { color: #007020; font-weight: bold; } /* Keyword */
 code span.op { color: #666666; } /* Operator */
@@ -127,6 +127,10 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
 <style type="text/css">
 /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
 div.csl-bib-body { }
@@ -164,7 +168,7 @@ div.csl-indent {
       <nav role="navigation">
 
 <ul class="summary">
-<li><a href="./">EcoSHEDS BTO Model</a></li>
+<li><a href="./">Northeast BTO Model</a></li>
 
 <li class="divider"></li>
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
@@ -232,7 +236,7 @@ div.csl-indent {
 <h2><span class="header-section-number">4.1</span> Dataset Split<a href="calibration-and-validation.html#dataset-split" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>To calibrate and validate the model, the observed dataset of presence/absence by catchment (see <a href="data-sources.html#observation-data">Observation Data</a>) was randomly split using 80% of the catchments for calibration and 20% for validation.</p>
 <div class="figure"><span style="display:block;" id="fig:calib-map"></span>
-<img src="sheds-bto-model_files/figure-html/calib-map-1.png" alt="Calibration and Validation Splits" width="672" />
+<img src="northeast-bto-model_files/figure-html/calib-map-1.png" alt="Calibration and Validation Splits" width="672" />
 <p class="caption">
 Figure 4.1: Calibration and Validation Splits
 </p>
@@ -279,70 +283,70 @@ Figure 4.1: Calibration and Validation Splits
   Approximation) [glmerMod]
  Family: binomial  ( logit )
 Formula: presence ~ mean_jul_temp + (1 | huc8)
-   Data: model_data
+   Data: model_gm_data
 Control: glmerControl(optimizer = &quot;bobyqa&quot;)
 
      AIC      BIC   logLik deviance df.resid 
-  8592.8   8614.7  -4293.4   8586.8    10934 
+  8513.1   8535.0  -4253.5   8507.1    10934 
 
 Scaled residuals: 
-    Min      1Q  Median      3Q     Max 
--32.628  -0.371   0.135   0.427  11.133 
+     Min       1Q   Median       3Q      Max 
+-17.9986  -0.3634   0.1320   0.4235  12.4987 
 
 Random effects:
  Groups Name        Variance Std.Dev.
- huc8   (Intercept) 4.999    2.236   
+ huc8   (Intercept) 5.139    2.267   
 Number of obs: 10937, groups:  huc8, 202
 
 Fixed effects:
               Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)   19.54035    0.68083   28.70   &lt;2e-16 ***
-mean_jul_temp -1.03582    0.03444  -30.07   &lt;2e-16 ***
+(Intercept)   20.66823    0.69572   29.71   &lt;2e-16 ***
+mean_jul_temp -1.08706    0.03498  -31.08   &lt;2e-16 ***
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
 Correlation of Fixed Effects:
             (Intr)
-mean_jl_tmp -0.965</code></pre>
-<p>The estimated fixed effect for mean July temp (<code>mean_jul_temp</code>) was -1.04. Because the estimated value is negative, the occupancy probability is higher at lower stream temperatures. Figure @(fig:calib-fixed) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects).</p>
+mean_jl_tmp -0.966</code></pre>
+<p>The estimated fixed effect for mean July temp (<code>mean_jul_temp</code>) was -1.09. Because the estimated value is negative, the occupancy probability is higher at lower stream temperatures. Figure @(fig:calib-fixed) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects).</p>
 <div class="figure"><span style="display:block;" id="fig:calib-fixef"></span>
-<img src="sheds-bto-model_files/figure-html/calib-fixef-1.png" alt="Marginal Effects Plot for Mean July Stream Temperature." width="672" />
+<img src="northeast-bto-model_files/figure-html/calib-fixef-1.png" alt="Marginal Effects Plot for Mean July Stream Temperature." width="672" />
 <p class="caption">
 Figure 4.2: Marginal Effects Plot for Mean July Stream Temperature.
 </p>
 </div>
 <p>The random effect intercept varies by HUC8 basin. Basins with higher values tend to have higher occupancy probabilities for a given mean July stream temperature. Some HUC8 basins do not have an estimated value because there was no observations with the calibration dataset.</p>
 <div class="figure"><span style="display:block;" id="fig:calib-ranef"></span>
-<img src="sheds-bto-model_files/figure-html/calib-ranef-1.png" alt="Random Effect Intercept by HUC8 Basin" width="672" />
+<img src="northeast-bto-model_files/figure-html/calib-ranef-1.png" alt="Random Effect Intercept by HUC8 Basin" width="672" />
 <p class="caption">
 Figure 4.3: Random Effect Intercept by HUC8 Basin
 </p>
 </div>
-<p>The model accuracy and performance is summarized by a series of metrics computed from the confusion matrix, which contains the total number of true positives, true negatives, false positives, and false negatives. In the 2x2 table at the top of the following output, the columns (<code>Reference</code>) refer to the observed condition in each catchment (<code>1</code> = presence, <code>0</code> = absence), while the rows (<code>Prediction</code>) refer to the predicted condition. The predicted probabilities were converted to presence/absence using a 50% cutoff. The remaining output provides a series of performance metrics computed from the confusion matrix using the <code>confusionMatrix()</code> of the <code>caret</code> package <span class="citation">(<a href="#ref-kuhn2022" role="doc-biblioref">Kuhn, 2022</a>)</span>. See the <a href="https://rdrr.io/cran/caret/man/confusionMatrix.html">help page</a> for that function, as well as <a href="https://en.wikipedia.org/wiki/Confusion_matrix">this Wikipedia article</a>, for definitions of each metric.</p>
+<p>The model accuracy and performance is summarized by a series of metrics computed from the confusion matrix, which contains the total number of true positives, true negatives, false positives, and false negatives. In the 2x2 table at the top of the following output, the columns (<code>Reference</code>) refer to the observed condition in each catchment (<code>1</code> = presence, <code>0</code> = absence), while the rows (<code>Prediction</code>) refer to the predicted condition. The predicted probabilities were converted to presence/absence using a 50% cutoff. The remaining output provides a series of performance metrics computed from the confusion matrix using the <code>confusionMatrix()</code> of the <code>caret</code> package <span class="citation">(<a href="#ref-kuhn2022">Kuhn, 2022</a>)</span>. See the <a href="https://rdrr.io/cran/caret/man/confusionMatrix.html">help page</a> for that function, as well as <a href="https://en.wikipedia.org/wiki/Confusion_matrix">this Wikipedia article</a>, for definitions of each metric.</p>
 <pre><code>Confusion Matrix and Statistics
 
           Reference
 Prediction    0    1
-         0 2733  728
-         1 1107 6369
+         0 2766  720
+         1 1074 6377
                                           
-               Accuracy : 0.8322          
-                 95% CI : (0.8251, 0.8392)
+               Accuracy : 0.836           
+                 95% CI : (0.8289, 0.8429)
     No Information Rate : 0.6489          
     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
                                           
-                  Kappa : 0.6233          
+                  Kappa : 0.6322          
                                           
  Mcnemar&#39;s Test P-Value : &lt; 2.2e-16       
                                           
-            Sensitivity : 0.8974          
-            Specificity : 0.7117          
-         Pos Pred Value : 0.8519          
-         Neg Pred Value : 0.7897          
+            Sensitivity : 0.8985          
+            Specificity : 0.7203          
+         Pos Pred Value : 0.8559          
+         Neg Pred Value : 0.7935          
              Prevalence : 0.6489          
-         Detection Rate : 0.5823          
-   Detection Prevalence : 0.6836          
-      Balanced Accuracy : 0.8046          
+         Detection Rate : 0.5831          
+   Detection Prevalence : 0.6813          
+      Balanced Accuracy : 0.8094          
                                           
        &#39;Positive&#39; Class : 1               
                                           </code></pre>
@@ -350,34 +354,34 @@ Prediction    0    1
 <div id="validation" class="section level2 hasAnchor" number="4.3">
 <h2><span class="header-section-number">4.3</span> Validation<a href="calibration-and-validation.html#validation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Using the calibrated model, predicted probabilities were computed using the indendent validation dataset.</p>
-<p>The confusion matrix for the validation dataset indicates slightly lower accuracy (0.83 vs 0.81), but overall comparable performance. These results suggest that the model does not suffer from overfitting.</p>
+<p>The confusion matrix for the validation dataset indicates slightly lower accuracy (0.84 vs 0.81), but overall comparable performance. These results suggest that the model does not suffer from overfitting.</p>
 <pre><code>Confusion Matrix and Statistics
 
           Reference
 Prediction    0    1
-         0  590  221
-         1  199 1194
-                                          
-               Accuracy : 0.8094          
-                 95% CI : (0.7924, 0.8256)
-    No Information Rate : 0.642           
-    P-Value [Acc &gt; NIR] : &lt;2e-16          
-                                          
-                  Kappa : 0.588           
-                                          
- Mcnemar&#39;s Test P-Value : 0.3055          
-                                          
-            Sensitivity : 0.8438          
-            Specificity : 0.7478          
-         Pos Pred Value : 0.8571          
-         Neg Pred Value : 0.7275          
-             Prevalence : 0.6420          
-         Detection Rate : 0.5417          
-   Detection Prevalence : 0.6320          
-      Balanced Accuracy : 0.7958          
-                                          
-       &#39;Positive&#39; Class : 1               
-                                          </code></pre>
+         0  599  227
+         1  190 1188
+                                         
+               Accuracy : 0.8108         
+                 95% CI : (0.7938, 0.827)
+    No Information Rate : 0.642          
+    P-Value [Acc &gt; NIR] : &lt; 2e-16        
+                                         
+                  Kappa : 0.5926         
+                                         
+ Mcnemar&#39;s Test P-Value : 0.07791        
+                                         
+            Sensitivity : 0.8396         
+            Specificity : 0.7592         
+         Pos Pred Value : 0.8621         
+         Neg Pred Value : 0.7252         
+             Prevalence : 0.6420         
+         Detection Rate : 0.5390         
+   Detection Prevalence : 0.6252         
+      Balanced Accuracy : 0.7994         
+                                         
+       &#39;Positive&#39; Class : 1              
+                                         </code></pre>
 <p>The following table compares the performance metrics between the two subsets.</p>
 <table>
 <thead>
@@ -390,43 +394,43 @@ Prediction    0    1
 <tbody>
 <tr class="odd">
 <td align="left">Accuracy</td>
-<td align="right">0.832</td>
-<td align="right">0.809</td>
+<td align="right">0.836</td>
+<td align="right">0.811</td>
 </tr>
 <tr class="even">
 <td align="left">Sensitivity</td>
-<td align="right">0.897</td>
-<td align="right">0.844</td>
+<td align="right">0.899</td>
+<td align="right">0.840</td>
 </tr>
 <tr class="odd">
 <td align="left">Specificity</td>
-<td align="right">0.712</td>
-<td align="right">0.748</td>
+<td align="right">0.720</td>
+<td align="right">0.759</td>
 </tr>
 <tr class="even">
 <td align="left">Pos Pred Value</td>
-<td align="right">0.852</td>
-<td align="right">0.857</td>
+<td align="right">0.856</td>
+<td align="right">0.862</td>
 </tr>
 <tr class="odd">
 <td align="left">Neg Pred Value</td>
-<td align="right">0.790</td>
-<td align="right">0.727</td>
+<td align="right">0.793</td>
+<td align="right">0.725</td>
 </tr>
 <tr class="even">
 <td align="left">Precision</td>
-<td align="right">0.852</td>
-<td align="right">0.857</td>
+<td align="right">0.856</td>
+<td align="right">0.862</td>
 </tr>
 <tr class="odd">
 <td align="left">Recall</td>
-<td align="right">0.897</td>
-<td align="right">0.844</td>
+<td align="right">0.899</td>
+<td align="right">0.840</td>
 </tr>
 <tr class="even">
 <td align="left">F1</td>
-<td align="right">0.874</td>
-<td align="right">0.850</td>
+<td align="right">0.877</td>
+<td align="right">0.851</td>
 </tr>
 <tr class="odd">
 <td align="left">Prevalence</td>
@@ -435,24 +439,24 @@ Prediction    0    1
 </tr>
 <tr class="even">
 <td align="left">Detection Rate</td>
-<td align="right">0.582</td>
-<td align="right">0.542</td>
+<td align="right">0.583</td>
+<td align="right">0.539</td>
 </tr>
 <tr class="odd">
 <td align="left">Detection Prevalence</td>
-<td align="right">0.684</td>
-<td align="right">0.632</td>
+<td align="right">0.681</td>
+<td align="right">0.625</td>
 </tr>
 <tr class="even">
 <td align="left">Balanced Accuracy</td>
-<td align="right">0.805</td>
-<td align="right">0.796</td>
+<td align="right">0.809</td>
+<td align="right">0.799</td>
 </tr>
 </tbody>
 </table>
 <p>Lastly, <a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic">Receiver Operator Characteristic (ROC)</a> curves and Area Under the Curve (AUC) values also shows comparable performance between the calibration and validation subsets.</p>
 <div class="figure"><span style="display:block;" id="fig:calib-roc"></span>
-<img src="sheds-bto-model_files/figure-html/calib-roc-1.png" alt="ROC Curves for Calibration and Validation" width="672" />
+<img src="northeast-bto-model_files/figure-html/calib-roc-1.png" alt="ROC Curves for Calibration and Validation" width="672" />
 <p class="caption">
 Figure 4.4: ROC Curves for Calibration and Validation
 </p>

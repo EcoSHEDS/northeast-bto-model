@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Section 7 History | EcoSHEDS Northeast Brook Trout Occupancy Model</title>
   <meta name="description" content="Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model." />
-  <meta name="generator" content="bookdown 0.27 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Section 7 History | EcoSHEDS Northeast Brook Trout Occupancy Model" />
   <meta property="og:type" content="book" />
@@ -64,7 +64,7 @@
 
 <style type="text/css">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -100,7 +100,7 @@ code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code span.at { color: #7d9029; } /* Attribute */
 code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
+code span.bu { color: #008000; } /* BuiltIn */
 code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
 code span.ch { color: #4070a0; } /* Char */
 code span.cn { color: #880000; } /* Constant */
@@ -113,7 +113,7 @@ code span.er { color: #ff0000; font-weight: bold; } /* Error */
 code span.ex { } /* Extension */
 code span.fl { color: #40a070; } /* Float */
 code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
+code span.im { color: #008000; font-weight: bold; } /* Import */
 code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 code span.kw { color: #007020; font-weight: bold; } /* Keyword */
 code span.op { color: #666666; } /* Operator */
@@ -127,6 +127,10 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
 <style type="text/css">
 /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
 div.csl-bib-body { }
@@ -164,7 +168,7 @@ div.csl-indent {
       <nav role="navigation">
 
 <ul class="summary">
-<li><a href="./">EcoSHEDS BTO Model</a></li>
+<li><a href="./">Northeast BTO Model</a></li>
 
 <li class="divider"></li>
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
@@ -240,24 +244,26 @@ div.csl-indent {
 <div id="change-log" class="section level2 hasAnchor" number="7.2">
 <h2><span class="header-section-number">7.2</span> Change Log<a href="history.html#change-log" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <ul>
+<li>v2.1.0 | Jan 4, 2024
+Re-calibrate model with updated stream temperature model v1.4.0 results through 2022.</li>
 <li>v2.0.0 | Jul 8, 2022
 Removed all fixed effects except for mean July stream temperature due to cross-correlation between stream temperatures and other covariates (e.g., forest cover). Changed random effect levels from HUC10 to HUC8.</li>
 <li>v1.4.0 | Sep 8, 2021<br />
-Re-calibrate model with updated stream temperature model results through 2020 (<a href="http://ecosheds.org/models/stream-temperature/v1.3.0/">v1.3.0</a>), removed July stream temperature scenarios from predictions (these have been replaced by the air temperature scenarios)</li>
+Re-calibrate model with updated stream temperature model v1.3.0 results through 2020, removed July stream temperature scenarios from predictions (these have been replaced by the air temperature scenarios)</li>
 <li>v1.3.0 | Jul 13, 2020<br />
-Re-run calibration with updated stream temperature model results through 2019 (<a href="http://ecosheds.org/models/stream-temperature/v1.2.0/">v1.2.0</a>)</li>
+Re-run calibration with updated stream temperature model v1.2.0 results through 2019</li>
 <li>v1.2.2 | Jan 17, 2020<br />
 Rename prediction metrics to be more consistent</li>
 <li>v1.2.1 | Jan 16, 2020<br />
 Added predictions for air temperature scenarios (+2, +4, +6 degC), remove 0.5 degC increments from July stream temperature scenarios, revise method for estimating max temperature increases to achieve occupancy thresholds using linear interpolation</li>
 <li>v1.2.0 | Dec 3, 2019<br />
-Re-run calibration with updated stream temperature model results (<a href="http://ecosheds.org/models/stream-temperature/v1.1/">v1.1</a>)</li>
+Re-run calibration with updated stream temperature model v1.1 results</li>
 <li>v1.1.1 | Mar 26, 2019<br />
 Update documentation, add [Download] section containing links to model predictions, catchment delineation, and covariates.</li>
 <li>v1.1.0 | Mar 25, 2019<br />
-Add observation data from MA DFW. Recalibrate model using <a href="http://ecosheds.org/models/stream-temperature/v1.0.1/">v1.0 of stream temperature model</a>.</li>
+Add observation data from MA DFW. Recalibrate model using stream temperature model v1.0 results.</li>
 <li>v1.0.0 | Oct 25, 2018<br />
-Recalibrate model using <a href="http://ecosheds.org/models/stream-temperature/v1.0.1/">v1.0 of stream temperature model</a>.</li>
+Recalibrate model using stream temperature model v1.0 results.</li>
 <li>v0.9.0 | Aug 16, 2018<br />
 Preliminary release of the new model framework and documentation.</li>
 <li><strong><a href="http://conte-ecology.github.io/Northeast_Bkt_Occupancy/">Previous Versions</a> (prior to 2018)</strong><br />

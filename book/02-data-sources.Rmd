@@ -2,7 +2,7 @@
 
 ## Catchment Delineation
 
-The model domain was based on the [EcoSHEDS Northeast Catchment Delineation](https://ecosheds.github.io/necd/), which is also used for the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.org/models/stream-temperature/latest/). This delineation was created in 2014-2015 to provide a high resolution catchment delineation across the northeast that was spatially consistent over the entire region. The EcoSHEDS delineation was created prior to the completion of the [USGS NHDPlus High Resolution](https://www.usgs.gov/national-hydrography/nhdplus-high-resolution) dataset. Unfortunately, the two delineations are not directly relatable.
+The model domain was based on the [EcoSHEDS Northeast Catchment Delineation](https://ecosheds.github.io/necd/), which is also used for the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.github.io/northeast-temp-model/). This delineation was created in 2014-2015 to provide a high resolution catchment delineation across the northeast that was spatially consistent over the entire region. The EcoSHEDS delineation was created prior to the completion of the [USGS NHDPlus High Resolution](https://www.usgs.gov/national-hydrography/nhdplus-high-resolution) dataset. Unfortunately, the two delineations are not directly relatable.
 
 Figure \@ref(fig:data-catchments) shows the extent of this delineation, which covers the northeast and mid-Atlantic portions of the eastern U.S. from Maine to Virginia. The delineation includes approximately 450,000 individual catchments, with an mean surface area of 1.6 km^2^.
 
@@ -63,9 +63,9 @@ tar_read(obs_presence_states) |>
 
 ## Stream Temperature
 
-The primary input to the brook trout occupancy model is the estimated mean July stream temperature of each catchment. These estimates were generated using the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.org/models/stream-temperature/latest/). The estimated value for each catchment represents the long-term mean July stream temperature computed over all years since 1980. Estimates are only generated for catchments with total cumulative drainage areas less than 200 km^2^ due to the great complexity, anthropogenic impacts, and non-linearities associated with temperature dynamics in larger rivers.
+The primary input to the brook trout occupancy model is the estimated mean July stream temperature of each catchment. These estimates were generated using the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.github.io/northeast-temp-model/). The estimated value for each catchment represents the long-term mean July stream temperature computed over all years since 1980. Estimates are only generated for catchments with total cumulative drainage areas less than 200 km^2^ due to the great complexity, anthropogenic impacts, and non-linearities associated with temperature dynamics in larger rivers.
 
-The stream temperature model is based on a linear mixed effects framework that accounts for spatial and temporal correlations using a hierachical Bayesian structure. The primary input variables include air temperature, precipitation, land use (forest, agriculture, high development), impounded drainage area, and total drainage area. See the [stream temperature model documentation](https://ecosheds.org/models/stream-temperature/latest/) for more information.
+The stream temperature model is based on a linear mixed effects framework that accounts for spatial and temporal correlations using a hierachical Bayesian structure. The primary input variables include air temperature, precipitation, land use (forest, agriculture, high development), impounded drainage area, and total drainage area. See the [EcoSHEDS Northeast Stream Temperature Model](https://ecosheds.github.io/northeast-temp-model/) for more information.
 
 Figure \@ref(fig:data-temp) shows the estimated mean July stream temperature for each catchment.
 

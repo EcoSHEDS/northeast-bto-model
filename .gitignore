@@ -8,3 +8,5 @@
 _targets/
 
 book/_bookdown_files/
+book/*_files/
+book/output/

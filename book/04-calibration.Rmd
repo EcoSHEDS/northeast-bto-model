@@ -38,7 +38,13 @@ summary(model_gm)
 The estimated fixed effect for mean July temp (`mean_jul_temp`) was `r scales::number(model_gm@beta[2], accuracy = 0.01)`. Because the estimated value is negative, the occupancy probability is higher at lower stream temperatures. Figure @\ref(fig:calib-fixed) contains a marginal effects plot showing the predicted probability over varying mean July stream temperatures (excluding random effects).
 
 ```{r calib-fixef, fig.cap="Marginal Effects Plot for Mean July Stream Temperature."}
-tar_read(model_gm_plot_eff) +
+tar_load(model_gm)
+tar_load(model_gm_data)
+p <- map(tar_read(model_eff_names), function (v) {
+  sjPlot::plot_model(model_gm, type = "eff", terms = glue("{v} [all]")) +
+    labs(title = v)
+})
+wrap_plots(p) +
   labs(x = "Mean July Stream Temp (degC)", y = "Occupancy Probability", title = NULL)
 ```
 

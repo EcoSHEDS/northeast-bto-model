@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Section 2 Data Sources | EcoSHEDS Northeast Brook Trout Occupancy Model</title>
   <meta name="description" content="Documentation for the EcoSHEDS Northeast Brook Trout Occupancy Model." />
-  <meta name="generator" content="bookdown 0.27 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.37 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Section 2 Data Sources | EcoSHEDS Northeast Brook Trout Occupancy Model" />
   <meta property="og:type" content="book" />
@@ -64,7 +64,7 @@
 
 <style type="text/css">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -100,7 +100,7 @@ code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code span.at { color: #7d9029; } /* Attribute */
 code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
+code span.bu { color: #008000; } /* BuiltIn */
 code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
 code span.ch { color: #4070a0; } /* Char */
 code span.cn { color: #880000; } /* Constant */
@@ -113,7 +113,7 @@ code span.er { color: #ff0000; font-weight: bold; } /* Error */
 code span.ex { } /* Extension */
 code span.fl { color: #40a070; } /* Float */
 code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
+code span.im { color: #008000; font-weight: bold; } /* Import */
 code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
 code span.kw { color: #007020; font-weight: bold; } /* Keyword */
 code span.op { color: #666666; } /* Operator */
@@ -127,6 +127,10 @@ code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
 <style type="text/css">
 /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
 div.csl-bib-body { }
@@ -164,7 +168,7 @@ div.csl-indent {
       <nav role="navigation">
 
 <ul class="summary">
-<li><a href="./">EcoSHEDS BTO Model</a></li>
+<li><a href="./">Northeast BTO Model</a></li>
 
 <li class="divider"></li>
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a>
@@ -230,7 +234,7 @@ div.csl-indent {
 <h1><span class="header-section-number">Section 2</span> Data Sources<a href="data-sources.html#data-sources" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <div id="catchment-delineation" class="section level2 hasAnchor" number="2.1">
 <h2><span class="header-section-number">2.1</span> Catchment Delineation<a href="data-sources.html#catchment-delineation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The model domain was based on the <a href="https://ecosheds.github.io/necd/">EcoSHEDS Northeast Catchment Delineation</a>, which is also used for the <a href="https://ecosheds.org/models/stream-temperature/latest/">EcoSHEDS Northeast Stream Temperature Model</a>. This delineation was created in 2014-2015 to provide a high resolution catchment delineation across the northeast that was spatially consistent over the entire region. The EcoSHEDS delineation was created prior to the completion of the <a href="https://www.usgs.gov/national-hydrography/nhdplus-high-resolution">USGS NHDPlus High Resolution</a> dataset. Unfortunately, the two delineations are not directly relatable.</p>
+<p>The model domain was based on the <a href="https://ecosheds.github.io/necd/">EcoSHEDS Northeast Catchment Delineation</a>, which is also used for the <a href="https://ecosheds.github.io/northeast-temp-model/">EcoSHEDS Northeast Stream Temperature Model</a>. This delineation was created in 2014-2015 to provide a high resolution catchment delineation across the northeast that was spatially consistent over the entire region. The EcoSHEDS delineation was created prior to the completion of the <a href="https://www.usgs.gov/national-hydrography/nhdplus-high-resolution">USGS NHDPlus High Resolution</a> dataset. Unfortunately, the two delineations are not directly relatable.</p>
 <p>Figure <a href="data-sources.html#fig:data-catchments">2.1</a> shows the extent of this delineation, which covers the northeast and mid-Atlantic portions of the eastern U.S. from Maine to Virginia. The delineation includes approximately 450,000 individual catchments, with an mean surface area of 1.6 km<sup>2</sup>.</p>
 <div class="figure"><span style="display:block;" id="fig:data-catchments"></span>
 <img src="img/hydrologic-regions.png" alt="Hydrologic Regions of EcoSHEDS Northeast Catchment Delineation"  />
@@ -243,7 +247,7 @@ Figure 2.1: Hydrologic Regions of EcoSHEDS Northeast Catchment Delineation
 <h2><span class="header-section-number">2.2</span> HUC8 Basins<a href="data-sources.html#huc8-basins" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>The <a href="https://water.usgs.gov/GIS/huc.html">8-digit Hydrologic Unit Code (HUC8)</a> basins were used to account for regional variations in brook trout occupancy that was not explained by stream temperature data (see [Model Structure]). Figure <a href="data-sources.html#fig:data-huc8">2.2</a> shows the boundary of each HUC8 basin.</p>
 <div class="figure"><span style="display:block;" id="fig:data-huc8"></span>
-<img src="sheds-bto-model_files/figure-html/data-huc8-1.png" alt="HUC8 Basins" width="672" />
+<img src="northeast-bto-model_files/figure-html/data-huc8-1.png" alt="HUC8 Basins" width="672" />
 <p class="caption">
 Figure 2.2: HUC8 Basins
 </p>
@@ -255,13 +259,13 @@ Figure 2.2: HUC8 Basins
 <p>The raw presence/absence observations were aggregated by catchment for input to the model. If there were multiple observations in a single catchment (either at different locations or at different times), then the catchment was assigned to the <code>presence</code> category if there was at least presence among those observations. If all observations were absences, then the catchment was assigned to <code>absence</code>.</p>
 <p>The follow map, figures, and table provide a summary of the observed catchment presence/absence by state.</p>
 <div class="figure"><span style="display:block;" id="fig:data-obs-map"></span>
-<img src="sheds-bto-model_files/figure-html/data-obs-map-1.png" alt="Map of Presence/Absence by Catchment" width="672" />
+<img src="northeast-bto-model_files/figure-html/data-obs-map-1.png" alt="Map of Presence/Absence by Catchment" width="672" />
 <p class="caption">
 Figure 2.3: Map of Presence/Absence by Catchment
 </p>
 </div>
 <div class="figure"><span style="display:block;" id="fig:data-obs-state-plot"></span>
-<img src="sheds-bto-model_files/figure-html/data-obs-state-plot-1.png" alt="Presence/Absence Catchment Totals by State" width="768" />
+<img src="northeast-bto-model_files/figure-html/data-obs-state-plot-1.png" alt="Presence/Absence Catchment Totals by State" width="768" />
 <p class="caption">
 Figure 2.4: Presence/Absence Catchment Totals by State
 </p>
@@ -373,11 +377,11 @@ Figure 2.4: Presence/Absence Catchment Totals by State
 </div>
 <div id="stream-temperature" class="section level2 hasAnchor" number="2.4">
 <h2><span class="header-section-number">2.4</span> Stream Temperature<a href="data-sources.html#stream-temperature" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>The primary input to the brook trout occupancy model is the estimated mean July stream temperature of each catchment. These estimates were generated using the <a href="https://ecosheds.org/models/stream-temperature/latest/">EcoSHEDS Northeast Stream Temperature Model</a>. The estimated value for each catchment represents the long-term mean July stream temperature computed over all years since 1980. Estimates are only generated for catchments with total cumulative drainage areas less than 200 km<sup>2</sup> due to the great complexity, anthropogenic impacts, and non-linearities associated with temperature dynamics in larger rivers.</p>
-<p>The stream temperature model is based on a linear mixed effects framework that accounts for spatial and temporal correlations using a hierachical Bayesian structure. The primary input variables include air temperature, precipitation, land use (forest, agriculture, high development), impounded drainage area, and total drainage area. See the <a href="https://ecosheds.org/models/stream-temperature/latest/">stream temperature model documentation</a> for more information.</p>
+<p>The primary input to the brook trout occupancy model is the estimated mean July stream temperature of each catchment. These estimates were generated using the <a href="https://ecosheds.github.io/northeast-temp-model/">EcoSHEDS Northeast Stream Temperature Model</a>. The estimated value for each catchment represents the long-term mean July stream temperature computed over all years since 1980. Estimates are only generated for catchments with total cumulative drainage areas less than 200 km<sup>2</sup> due to the great complexity, anthropogenic impacts, and non-linearities associated with temperature dynamics in larger rivers.</p>
+<p>The stream temperature model is based on a linear mixed effects framework that accounts for spatial and temporal correlations using a hierachical Bayesian structure. The primary input variables include air temperature, precipitation, land use (forest, agriculture, high development), impounded drainage area, and total drainage area. See the <a href="https://ecosheds.github.io/northeast-temp-model/">EcoSHEDS Northeast Stream Temperature Model</a> for more information.</p>
 <p>Figure <a href="data-sources.html#fig:data-temp">2.5</a> shows the estimated mean July stream temperature for each catchment.</p>
 <div class="figure"><span style="display:block;" id="fig:data-temp"></span>
-<img src="sheds-bto-model_files/figure-html/data-temp-1.png" alt="Estimated Mean July Stream Temperature by Catchment" width="672" />
+<img src="northeast-bto-model_files/figure-html/data-temp-1.png" alt="Estimated Mean July Stream Temperature by Catchment" width="672" />
 <p class="caption">
 Figure 2.5: Estimated Mean July Stream Temperature by Catchment
 </p>
